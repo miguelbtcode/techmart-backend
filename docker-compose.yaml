@@ -1,0 +1,227 @@
+# docker-compose.yml - Infraestructura de desarrollo para TechMart
+version: "3.8"
+
+services:
+  # PostgreSQL Databases
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-auth
+    environment:
+      POSTGRES_DB: TechMartAuth
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  postgres-product:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-product
+    environment:
+      POSTGRES_DB: TechMartProduct
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_product_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  postgres-order:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-order
+    environment:
+      POSTGRES_DB: TechMartOrder
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_order_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  postgres-payment:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-payment
+    environment:
+      POSTGRES_DB: TechMartPayment
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_payment_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  postgres-notification:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-notification
+    environment:
+      POSTGRES_DB: TechMartNotification
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres_notification_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  postgres-analytics:
+    image: postgres:15-alpine
+    container_name: techmart-postgres-analytics
+    environment:
+      POSTGRES_DB: TechMartAnalytics
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Password123!
+    ports:
+      - "5437:5432"
+    volumes:
+      - postgres_analytics_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: techmart-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - techmart-network
+    command: redis-server --appendonly yes
+
+  # RabbitMQ Message Bus
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: techmart-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: Password123!
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - techmart-network
+
+  # Elasticsearch for Product Search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: techmart-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - techmart-network
+
+  # Kibana for Elasticsearch visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: techmart-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - techmart-network
+
+  # Seq for Centralized Logging
+  seq:
+    image: datalust/seq:latest
+    container_name: techmart-seq
+    environment:
+      - ACCEPT_EULA=Y
+    ports:
+      - "5340:80"
+    volumes:
+      - seq_data:/data
+    networks:
+      - techmart-network
+
+  # Jaeger for Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: techmart-jaeger
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - techmart-network
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: techmart-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - techmart-network
+
+  # Grafana for Monitoring Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: techmart-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - techmart-network
+
+  # pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: techmart-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@techmart.com
+      PGADMIN_DEFAULT_PASSWORD: Password123!
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - techmart-network
+
+networks:
+  techmart-network:
+    driver: bridge
+
+volumes:
+  postgres_auth_data:
+  postgres_product_data:
+  postgres_order_data:
+  postgres_payment_data:
+  postgres_notification_data:
+  postgres_analytics_data:
+  redis_data:
+  rabbitmq_data:
+  elasticsearch_data:
+  seq_data:
+  prometheus_data:
+  grafana_data:
+  pgadmin_data:
