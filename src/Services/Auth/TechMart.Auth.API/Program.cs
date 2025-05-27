@@ -1,7 +1,13 @@
+using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Serilog;
+using TechMart.Auth.API.Extensions;
 using TechMart.Auth.Application;
 using TechMart.Auth.Infrastructure;
+using TechMart.Auth.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,57 +21,82 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 // Add services to the container
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.SerializerOptions.DefaultIgnoreCondition = System
+        .Text
+        .Json
+        .Serialization
+        .JsonIgnoreCondition
+        .WhenWritingNull;
+});
+
+// JWT Configuration
+var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()!;
+jwtSettings.Validate();
+
 builder
-    .Services.AddControllers()
-    .AddJsonOptions(options =>
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.DefaultIgnoreCondition = System
-            .Text
-            .Json
-            .Serialization
-            .JsonIgnoreCondition
-            .WhenWritingNull;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = jwtSettings.ValidateIssuer,
+            ValidateAudience = jwtSettings.ValidateAudience,
+            ValidateLifetime = jwtSettings.ValidateLifetime,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings.Issuer,
+            ValidAudience = jwtSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSettings.SecretKey)
+            ),
+            ClockSkew = TimeSpan.FromSeconds(jwtSettings.ClockSkewSeconds),
+        };
     });
 
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddAuthorization();
+
+// Add OpenAPI/Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc(
         "v1",
-        new()
+        new OpenApiInfo
         {
             Title = "TechMart Auth API",
             Version = "v1",
             Description =
                 "Authentication and authorization service for TechMart e-commerce platform",
+            Contact = new OpenApiContact { Name = "TechMart Team", Email = "support@techmart.com" },
         }
     );
 
     // Add JWT authentication to Swagger
     c.AddSecurityDefinition(
         "Bearer",
-        new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        new OpenApiSecurityScheme
         {
             Description =
                 "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
             Name = "Authorization",
-            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-            Scheme = "Bearer",
+            In = ParameterLocation.Header,
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
         }
     );
 
     c.AddSecurityRequirement(
-        new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+        new OpenApiSecurityRequirement
         {
             {
-                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                new OpenApiSecurityScheme
                 {
-                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                    Reference = new OpenApiReference
                     {
-                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Type = ReferenceType.SecurityScheme,
                         Id = "Bearer",
                     },
                 },
@@ -73,6 +104,14 @@ builder.Services.AddSwaggerGen(c =>
             },
         }
     );
+
+    // Add XML comments if available
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
 
 // CORS configuration
@@ -85,6 +124,7 @@ builder.Services.AddCors(options =>
             policy
                 .WithOrigins(
                     "http://localhost:3000", // React dev server
+                    "http://localhost:5173", // Vite dev server
                     "https://techmart.com",
                     "https://www.techmart.com"
                 )
@@ -101,9 +141,20 @@ builder
     .AddSqlServer(builder.Configuration.GetConnectionString("AuthDatabase")!)
     .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
 
+// Add problem details
+builder.Services.AddProblemDetails();
+
 // Application layers
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Add API versioning
+builder.Services.AddApiVersioning(options =>
+{
+    options.ReportApiVersions = true;
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.DefaultApiVersion = new Asp.Versioning.ApiVersion(1, 0);
+});
 
 var app = builder.Build();
 
@@ -114,21 +165,24 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TechMart Auth API V1");
-        c.RoutePrefix = string.Empty; // Swagger at root
+        c.RoutePrefix = "swagger";
+    });
+
+    // Add Scalar UI
+    app.UseScalar(options =>
+    {
+        options.Title = "TechMart Auth API";
+        options.Theme = Scalar.AspNetCore.ScalarTheme.Purple;
+        options.ShowSidebar = true;
+        options.DefaultHttpClient = new Scalar.AspNetCore.ScalarTarget(
+            Scalar.AspNetCore.ScalarClient.Fetch
+        );
+        options.RoutePrefix = "scalar";
     });
 }
 
-// Security headers
-app.Use(
-    async (context, next) =>
-    {
-        context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-        context.Response.Headers.Add("X-Frame-Options", "DENY");
-        context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-        context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
-        await next();
-    }
-);
+// Security headers middleware
+app.UseSecurityHeaders();
 
 app.UseHttpsRedirection();
 app.UseCors("AllowedOrigins");
@@ -140,14 +194,14 @@ app.UseAuthorization();
 // Request logging
 app.UseSerilogRequestLogging();
 
+// Exception handling
+app.UseExceptionHandler();
+
 // Health checks
 app.MapHealthChecks("/health");
 
-// Controllers
-app.MapControllers();
-
-// Global exception handling
-app.UseExceptionHandler("/error");
+// Map API endpoints
+app.MapApiEndpoints();
 
 // Database migration and seeding
 try
