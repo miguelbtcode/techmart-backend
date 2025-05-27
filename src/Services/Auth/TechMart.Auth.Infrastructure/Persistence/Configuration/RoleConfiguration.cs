@@ -34,10 +34,10 @@ internal sealed class RoleConfiguration : IEntityTypeConfiguration<Role>
 
         builder.Property(r => r.HierarchyLevel).IsRequired();
 
-        // Audit fields
-        builder.Property(r => r.CreatedAt).IsRequired().HasDefaultValueSql("NOW()");
+        // Audit fields - SQL Server syntax
+        builder.Property(r => r.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
 
-        builder.Property(r => r.UpdatedAt).IsRequired().HasDefaultValueSql("NOW()");
+        builder.Property(r => r.UpdatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
     }
 
     private static void ConfigureRelationships(EntityTypeBuilder<Role> builder)

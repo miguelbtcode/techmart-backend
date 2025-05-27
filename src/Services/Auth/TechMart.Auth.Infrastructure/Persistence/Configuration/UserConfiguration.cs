@@ -39,10 +39,10 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.LastLoginAt).IsRequired(false);
 
-        // Audit fields
-        builder.Property(u => u.CreatedAt).IsRequired().HasDefaultValueSql("NOW()");
+        // Audit fields - SQL Server syntax
+        builder.Property(u => u.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
 
-        builder.Property(u => u.UpdatedAt).IsRequired().HasDefaultValueSql("NOW()");
+        builder.Property(u => u.UpdatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
 
         builder.Property(u => u.CreatedBy).IsRequired(false);
 
