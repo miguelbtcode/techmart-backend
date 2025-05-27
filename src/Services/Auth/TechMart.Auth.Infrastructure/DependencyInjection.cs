@@ -46,20 +46,14 @@ public static class DependencyInjection
         // Email services
         services.AddEmailServices();
 
-        // Event handling
-        services.AddEventHandling(configuration);
+        // Event handling (only if Kafka is configured)
+        var kafkaAvailable = services.AddEventHandling(configuration);
 
         // Background services
         services.AddBackgroundServices();
 
         // Repositories
         services.AddRepositories();
-
-        // Health checks
-        // services
-        //     .AddHealthChecks()
-        //     .AddSqlServer(configuration.GetConnectionString("AuthDatabase")!)
-        //     .AddRedis(configuration.GetConnectionString("Redis")!);
 
         return services;
     }
@@ -142,44 +136,67 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddCaching(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    private static bool AddCaching(this IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString =
-            configuration.GetConnectionString("Redis")
-            ?? throw new InvalidOperationException("Redis connection string is not configured");
+        var redisConnectionString = configuration.GetConnectionString("Redis");
 
-        // Redis connection
-        services.AddSingleton<IConnectionMultiplexer>(provider =>
+        if (!string.IsNullOrEmpty(redisConnectionString))
         {
-            var logger = provider.GetRequiredService<ILogger<ConnectionMultiplexer>>();
             try
             {
-                var connection = ConnectionMultiplexer.Connect(redisConnectionString);
-                connection.ConnectionFailed += (sender, args) =>
-                    logger.LogError(
-                        "Redis connection failed: {EndPoint} - {FailureType}",
-                        args.EndPoint,
-                        args.FailureType
-                    );
-                connection.ConnectionRestored += (sender, args) =>
-                    logger.LogInformation("Redis connection restored: {EndPoint}", args.EndPoint);
-                return connection;
+                // Test connection first
+                using var testConnection = ConnectionMultiplexer.Connect(redisConnectionString);
+                testConnection.Dispose();
+
+                // Redis connection
+                services.AddSingleton<IConnectionMultiplexer>(provider =>
+                {
+                    var logger = provider.GetRequiredService<ILogger<ConnectionMultiplexer>>();
+                    try
+                    {
+                        var connection = ConnectionMultiplexer.Connect(redisConnectionString);
+                        connection.ConnectionFailed += (sender, args) =>
+                            logger.LogError(
+                                "Redis connection failed: {EndPoint} - {FailureType}",
+                                args.EndPoint,
+                                args.FailureType
+                            );
+                        connection.ConnectionRestored += (sender, args) =>
+                            logger.LogInformation(
+                                "Redis connection restored: {EndPoint}",
+                                args.EndPoint
+                            );
+                        return connection;
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Failed to connect to Redis");
+                        throw;
+                    }
+                });
+
+                // Cache services
+                services.AddSingleton<ICacheService, RedisCacheService>();
+                services.AddSingleton<IRateLimitService, RedisRateLimitService>();
+
+                Console.WriteLine("✅ Redis cache services registered successfully");
+                return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to connect to Redis");
-                throw;
+                Console.WriteLine(
+                    $"⚠️ Warning: Redis not available, skipping cache services: {ex.Message}"
+                );
+                return false;
             }
-        });
-
-        // Cache services
-        services.AddSingleton<ICacheService, RedisCacheService>();
-        services.AddSingleton<IRateLimitService, RedisRateLimitService>();
-
-        return services;
+        }
+        else
+        {
+            Console.WriteLine(
+                "⚠️ Warning: Redis connection string not configured, skipping cache services"
+            );
+            return false;
+        }
     }
 
     private static IServiceCollection AddAuthenticationServices(this IServiceCollection services)
@@ -204,31 +221,47 @@ public static class DependencyInjection
         return services;
     }
 
-    private static IServiceCollection AddEventHandling(
+    private static bool AddEventHandling(
         this IServiceCollection services,
         IConfiguration configuration
     )
     {
-        // Event serialization
+        // Event serialization (always available)
         services.AddSingleton<IEventSerializer, JsonEventSerializer>();
 
-        // Kafka producer (if Kafka is configured)
-        var kafkaConnectionString = configuration.GetConnectionString("Kafka");
-        if (!string.IsNullOrEmpty(kafkaConnectionString))
-        {
-            services.AddSingleton<IKafkaProducer, KafkaProducer>();
-        }
-
-        // Outbox pattern
+        // Outbox pattern (always available)
         services.AddScoped<IOutboxService, OutboxService>();
         services.AddScoped<IOutboxRepository, OutboxRepository>();
 
-        return services;
+        // Kafka producer (only if Kafka is configured)
+        var kafkaConnectionString = configuration.GetConnectionString("Kafka");
+        if (!string.IsNullOrEmpty(kafkaConnectionString))
+        {
+            try
+            {
+                services.AddSingleton<IKafkaProducer, KafkaProducer>();
+                Console.WriteLine("✅ Kafka producer registered successfully");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(
+                    $"⚠️ Warning: Kafka not available, events will be stored in outbox only: {ex.Message}"
+                );
+                return false;
+            }
+        }
+        else
+        {
+            Console.WriteLine(
+                "⚠️ Warning: Kafka connection string not configured, events will be stored in outbox only"
+            );
+            return false;
+        }
     }
 
     private static IServiceCollection AddBackgroundServices(this IServiceCollection services)
     {
-        // Outbox publisher background service
         services.AddHostedService<OutboxPublisherService>();
 
         return services;

@@ -1,43 +1,34 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Mvc;
-using TechMart.Auth.API.Filters;
+using TechMart.Auth.API.Common.Constants;
+using TechMart.Auth.API.Common.Responses;
+using TechMart.Auth.API.Extensions;
 using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Commands.RegisterUser;
 using TechMart.Auth.Application.Features.Users.Vms;
 
 namespace TechMart.Auth.API.Endpoints.Auth;
 
-internal sealed class RegisterEndpoint : IEndpoint
+/// <summary>
+/// Endpoint para registro de usuarios
+/// </summary>
+internal sealed class RegisterEndpoint : BaseEndpoint
 {
-    public sealed class RegisterUserRequest
+    public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        public string Email { get; init; }
-        public string Password { get; init; }
-        public string ConfirmPassword { get; init; }
-        public string FirstName { get; init; }
-        public string LastName { get; init; }
-    }
-
-    public void MapEndpoint(IEndpointRouteBuilder app)
-    {
-        var group = app.MapGroup("/auth").WithTags("Authentication");
-
-        group
-            .MapPost("/register", RegisterAsync)
-            .WithName("Register")
+        app.MapGroup(ApiRoutes.Auth.Base)
+            .WithTags(ApiTags.Authentication)
+            .MapPost(ApiRoutes.Auth.Register, HandleAsync)
+            .WithName("RegisterUser")
             .WithSummary("Register a new user account")
-            .WithDescription("Creates a new user account with the provided information")
-            .Produces<ApiResponse<RegisterUserVm>>(StatusCodes.Status201Created)
+            .WithDescription("Creates a new user account with email verification")
+            .Produces<ApiResponse>(StatusCodes.Status201Created)
             .Produces<ApiResponse>(StatusCodes.Status400BadRequest)
-            .AddEndpointFilter<ValidationFilter<RegisterUserRequest>>();
+            .Produces<ApiResponse>(StatusCodes.Status409Conflict);
     }
 
-    private static async Task<
-        Results<Created<ApiResponse<RegisterUserVm>>, BadRequest<ApiResponse>>
-    > RegisterAsync(
-        [FromBody] RegisterUserRequest request,
+    private static async Task<IResult> HandleAsync(
+        RegisterUserRequest request,
         ICommandHandler<RegisterUserCommand, RegisterUserVm> handler,
-        HttpContext httpContext
+        HttpContext context
     )
     {
         var command = new RegisterUserCommand(
@@ -48,16 +39,22 @@ internal sealed class RegisterEndpoint : IEndpoint
             request.LastName
         );
 
-        var result = await handler.Handle(command, httpContext.RequestAborted);
+        var result = await handler.Handle(command, context.RequestAborted);
 
-        return result.IsSuccess
-            ? TypedResults.Created(
-                "/api/auth/me",
-                ApiResponse<RegisterUserVm>.Successfull(
-                    result.Value,
-                    "User registered successfully"
-                )
-            )
-            : TypedResults.BadRequest(ApiResponse.Error(result.Error));
+        return result.ToCreatedResult(
+            $"/{ApiRoutes.Auth.Base}/{ApiRoutes.Auth.Me}",
+            ApiMessages.UserRegistered
+        );
     }
+
+    /// <summary>
+    /// Request model para registro de usuario
+    /// </summary>
+    public sealed record RegisterUserRequest(
+        string Email,
+        string Password,
+        string ConfirmPassword,
+        string FirstName,
+        string LastName
+    );
 }

@@ -1,6 +1,6 @@
 namespace TechMart.Auth.Application.Features.Shared.Queries;
 
-public abstract record PaginationBaseQuery
+public record PaginationBaseQuery
 {
     public string? SearchTerm { get; set; }
     public string? SortBy { get; set; }

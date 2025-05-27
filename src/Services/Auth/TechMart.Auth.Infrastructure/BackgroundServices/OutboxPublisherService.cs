@@ -14,6 +14,7 @@ public class OutboxPublisherService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<OutboxPublisherService> _logger;
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(30);
+    private readonly bool _isEnabled;
 
     public OutboxPublisherService(
         IServiceProvider serviceProvider,
@@ -22,10 +23,31 @@ public class OutboxPublisherService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
+
+        // Check if all required dependencies are available
+        using var scope = serviceProvider.CreateScope();
+        var outboxRepository = scope.ServiceProvider.GetService<IOutboxRepository>();
+        var kafkaProducer = scope.ServiceProvider.GetService<IKafkaProducer>();
+        var eventSerializer = scope.ServiceProvider.GetService<IEventSerializer>();
+
+        _isEnabled = outboxRepository != null && kafkaProducer != null && eventSerializer != null;
+
+        if (!_isEnabled)
+        {
+            _logger.LogWarning(
+                "Outbox Publisher Service disabled - missing dependencies (Kafka or other services)"
+            );
+        }
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        if (!_isEnabled)
+        {
+            _logger.LogInformation("Outbox Publisher Service is disabled, exiting gracefully");
+            return;
+        }
+
         _logger.LogInformation("Outbox Publisher Service started");
 
         while (!stoppingToken.IsCancellationRequested)
@@ -34,29 +56,65 @@ public class OutboxPublisherService : BackgroundService
             {
                 await ProcessOutboxMessagesAsync(stoppingToken);
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation is requested
+                _logger.LogInformation("Outbox Publisher Service is shutting down");
+                break;
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing outbox messages");
             }
 
-            await Task.Delay(_interval, stoppingToken);
+            try
+            {
+                await Task.Delay(_interval, stoppingToken);
+            }
+            catch (OperationCanceledException)
+            {
+                // Expected when cancellation is requested
+                _logger.LogInformation("Outbox Publisher Service delay interrupted, shutting down");
+                break;
+            }
         }
+
+        _logger.LogInformation("Outbox Publisher Service stopped");
     }
 
     private async Task ProcessOutboxMessagesAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var outboxRepository = scope.ServiceProvider.GetRequiredService<IOutboxRepository>();
-        var kafkaProducer = scope.ServiceProvider.GetRequiredService<IKafkaProducer>();
-        var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
+
+        var outboxRepository = scope.ServiceProvider.GetService<IOutboxRepository>();
+        var kafkaProducer = scope.ServiceProvider.GetService<IKafkaProducer>();
+        var eventSerializer = scope.ServiceProvider.GetService<IEventSerializer>();
+
+        // Double-check dependencies are still available
+        if (outboxRepository == null || kafkaProducer == null || eventSerializer == null)
+        {
+            _logger.LogWarning("Required dependencies not available, skipping outbox processing");
+            return;
+        }
 
         var unprocessedMessages = await outboxRepository.GetUnprocessedMessagesAsync(
             100,
             cancellationToken
         );
 
+        if (!unprocessedMessages.Any())
+        {
+            _logger.LogDebug("No unprocessed outbox messages found");
+            return;
+        }
+
+        _logger.LogDebug("Processing {Count} outbox messages", unprocessedMessages.Count());
+
         foreach (var message in unprocessedMessages)
         {
+            // Check for cancellation before processing each message
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
                 // Determine topic based on event type
@@ -76,6 +134,14 @@ public class OutboxPublisherService : BackgroundService
                 await outboxRepository.UpdateAsync(message, cancellationToken);
 
                 _logger.LogDebug("Outbox message {MessageId} processed successfully", message.Id);
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogInformation(
+                    "Outbox processing canceled for message {MessageId}",
+                    message.Id
+                );
+                throw; // Re-throw to stop the processing loop
             }
             catch (Exception ex)
             {

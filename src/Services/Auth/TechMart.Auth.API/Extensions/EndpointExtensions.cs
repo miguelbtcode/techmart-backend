@@ -4,14 +4,20 @@ using TechMart.Auth.API.Endpoints;
 
 namespace TechMart.Auth.API.Extensions;
 
+/// <summary>
+/// Extensions para registro y mapeo de endpoints
+/// </summary>
 public static class EndpointExtensions
 {
+    /// <summary>
+    /// Registra todos los endpoints del ensamblado
+    /// </summary>
     public static IServiceCollection AddEndpoints(
         this IServiceCollection services,
         Assembly assembly
     )
     {
-        ServiceDescriptor[] serviceDescriptors = assembly
+        var serviceDescriptors = assembly
             .DefinedTypes.Where(type =>
                 type is { IsAbstract: false, IsInterface: false }
                 && type.IsAssignableTo(typeof(IEndpoint))
@@ -24,27 +30,22 @@ public static class EndpointExtensions
         return services;
     }
 
-    public static IApplicationBuilder MapEndpoints(
-        this WebApplication app,
-        RouteGroupBuilder? routeGroupBuilder = null
-    )
+    /// <summary>
+    /// Mapea todos los endpoints registrados
+    /// </summary>
+    public static WebApplication MapEndpoints(this WebApplication app)
     {
-        IEnumerable<IEndpoint> endpoints = app.Services.GetRequiredService<
-            IEnumerable<IEndpoint>
-        >();
+        var endpoints = app.Services.GetRequiredService<IEnumerable<IEndpoint>>();
 
-        IEndpointRouteBuilder builder = routeGroupBuilder is null ? app : routeGroupBuilder;
+        // Crear grupo base para la API con versionado
+        var apiGroup = app.MapGroup("api/v1").WithOpenApi();
 
-        foreach (IEndpoint endpoint in endpoints)
+        // Mapear cada endpoint
+        foreach (var endpoint in endpoints)
         {
-            endpoint.MapEndpoint(builder);
+            endpoint.MapEndpoint(apiGroup);
         }
 
         return app;
-    }
-
-    public static RouteHandlerBuilder HasPermission(this RouteHandlerBuilder app, string permission)
-    {
-        return app.RequireAuthorization(permission);
     }
 }

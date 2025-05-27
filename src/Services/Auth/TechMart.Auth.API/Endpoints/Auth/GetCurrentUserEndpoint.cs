@@ -1,52 +1,51 @@
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.OpenApi.Extensions;
-using TechMart.Auth.API.Common;
+using Microsoft.AspNetCore.Authorization;
+using TechMart.Auth.API.Common.Constants;
+using TechMart.Auth.API.Common.Responses;
+using TechMart.Auth.API.Extensions;
 using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Queries.GetCurrentUser;
 using TechMart.Auth.Application.Features.Users.Vms;
 
 namespace TechMart.Auth.API.Endpoints.Auth;
 
-internal sealed class GetCurrentUserEndpoint : IEndpoint
+/// <summary>
+/// Endpoint para obtener información del usuario actual
+/// </summary>
+internal sealed class GetCurrentUserEndpoint : BaseEndpoint
 {
-    public void MapEndpoint(IEndpointRouteBuilder app)
+    public override void MapEndpoint(IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/auth").WithTags("Authentication");
-
-        group
-            .MapGet("/me", GetCurrentUserAsync)
+        app.MapGroup(ApiRoutes.Auth.Base)
+            .WithTags(ApiTags.Authentication)
+            .MapGet(ApiRoutes.Auth.Me, HandleAsync)
             .WithName("GetCurrentUser")
-            .WithSummary("Get current authenticated user information")
+            .WithSummary("Get current authenticated user")
             .WithDescription("Returns information about the currently authenticated user")
             .RequireAuthorization()
-            .Produces<ApiResponse<UserDetailVm>>(StatusCodes.Status200OK)
+            .Produces<ApiResponse>(StatusCodes.Status200OK)
             .Produces<ApiResponse>(StatusCodes.Status401Unauthorized);
     }
 
-    private static async Task<
-        Results<Ok<ApiResponse<UserDetailVm>>, Unauthorized<ApiResponse>>
-    > GetCurrentUserAsync(
-        HttpContext httpContext,
+    [Authorize]
+    private static async Task<IResult> HandleAsync(
+        HttpContext context,
         IQueryHandler<GetCurrentUserQuery, UserDetailVm> handler
     )
     {
-        var authHeader = httpContext.Request.Headers.Authorization.ToString();
+        var authHeader = context.Request.Headers.Authorization.ToString();
 
         if (string.IsNullOrWhiteSpace(authHeader) || !authHeader.StartsWith("Bearer "))
         {
-            return TypedResults.Unauthorized();
+            return Results.Json(
+                ApiResponse.Failure(ApiMessages.InvalidCredentials),
+                statusCode: StatusCodes.Status401Unauthorized
+            );
         }
 
         var accessToken = authHeader["Bearer ".Length..].Trim();
         var query = new GetCurrentUserQuery(accessToken);
-        var result = await handler.Handle(query, httpContext.RequestAborted);
+        var result = await handler.Handle(query, context.RequestAborted);
 
-        if (result.IsSuccess)
-        {
-            var successResponse = ApiResponse<UserDetailVm>.Successfull(result.Value);
-            return TypedResults.Ok(successResponse);
-        }
-
-        return TypedResults.Unauthorized();
+        return result.ToHttpResult(ApiMessages.UserDetailsRetrieved);
     }
 }
