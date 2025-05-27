@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -53,6 +54,12 @@ public static class DependencyInjection
 
         // Repositories
         services.AddRepositories();
+
+        // Health checks
+        // services
+        //     .AddHealthChecks()
+        //     .AddSqlServer(configuration.GetConnectionString("AuthDatabase")!)
+        //     .AddRedis(configuration.GetConnectionString("Redis")!);
 
         return services;
     }

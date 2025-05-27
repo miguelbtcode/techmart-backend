@@ -20,6 +20,5 @@
   <ItemGroup>
     <ProjectReference Include="..\TechMart.Auth.Domain\TechMart.Auth.Domain.csproj" />
     <ProjectReference Include="..\TechMart.Auth.Application\TechMart.Auth.Application.csproj" />
-    <ProjectReference Include="..\..\..\Shared\Common\TechMart.Shared.Common.csproj" />
   </ItemGroup>
 </Project>
