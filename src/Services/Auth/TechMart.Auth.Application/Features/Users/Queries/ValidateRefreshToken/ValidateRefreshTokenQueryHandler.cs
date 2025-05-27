@@ -1,11 +1,11 @@
-using TechMart.Auth.Application.Abstractions.Authentication;
+using TechMart.Auth.Application.Abstractions.Contracts;
 using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Domain.Primitives;
 
 namespace TechMart.Auth.Application.Features.Users.Queries.ValidateRefreshToken;
 
-internal sealed class ValidateRefreshTokenQueryHandler(IJwtProvider jwtProvider)
+internal sealed class ValidateRefreshTokenQueryHandler(IRefreshTokenService refreshTokenService)
     : IQueryHandler<ValidateRefreshTokenQuery, TokenValidationVm>
 {
     public async Task<Result<TokenValidationVm>> Handle(
@@ -13,7 +13,7 @@ internal sealed class ValidateRefreshTokenQueryHandler(IJwtProvider jwtProvider)
         CancellationToken cancellationToken
     )
     {
-        var validation = await jwtProvider.ValidateRefreshTokenAsync(
+        var validation = await refreshTokenService.ValidateRefreshTokenAsync(
             request.RefreshToken,
             cancellationToken
         );

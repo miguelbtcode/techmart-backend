@@ -1,4 +1,5 @@
 using TechMart.Auth.Application.Abstractions.Authentication;
+using TechMart.Auth.Application.Abstractions.Contracts;
 using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Domain.Primitives;
@@ -10,7 +11,8 @@ namespace TechMart.Auth.Application.Features.Users.Commands.Login;
 internal sealed class LoginCommandHandler(
     IUnitOfWork unitOfWork,
     IPasswordHasher passwordHasher,
-    IJwtProvider jwtProvider
+    IJwtProvider jwtProvider,
+    IRefreshTokenService refreshTokenService
 ) : ICommandHandler<LoginCommand, LoginVm>
 {
     public async Task<Result<LoginVm>> Handle(
@@ -52,7 +54,7 @@ internal sealed class LoginCommandHandler(
 
         // Generate tokens
         var accessToken = jwtProvider.GenerateToken(user);
-        var refreshToken = await jwtProvider.GenerateRefreshTokenAsync(user);
+        var refreshToken = await refreshTokenService.GenerateRefreshTokenAsync(user);
 
         // Save changes (for LastLoginAt update)
         await unitOfWork.SaveChangesAsync(cancellationToken);

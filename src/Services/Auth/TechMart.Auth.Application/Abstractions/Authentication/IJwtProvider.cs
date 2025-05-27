@@ -5,13 +5,8 @@ namespace TechMart.Auth.Application.Abstractions.Authentication;
 public interface IJwtProvider
 {
     string GenerateToken(User user);
-    Task<string> GenerateRefreshTokenAsync(User user);
     Task<TokenValidationResult> ValidateAccessTokenAsync(
         string accessToken,
-        CancellationToken cancellationToken = default
-    );
-    Task<TokenValidationResult> ValidateRefreshTokenAsync(
-        string refreshToken,
         CancellationToken cancellationToken = default
     );
 }

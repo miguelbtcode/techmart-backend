@@ -1,7 +1,6 @@
 using TechMart.Auth.Application.Abstractions.Authentication;
 using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Domain.Primitives;
-using TechMart.Auth.Domain.Users.Entities;
 using TechMart.Auth.Domain.Users.Errors;
 using TechMart.Auth.Domain.Users.ValueObjects;
 
