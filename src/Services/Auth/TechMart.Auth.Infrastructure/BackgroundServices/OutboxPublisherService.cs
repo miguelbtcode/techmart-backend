@@ -1,3 +1,12 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using TechMart.Auth.Application.Abstractions.Events;
+using TechMart.Auth.Domain.Primitives;
+using TechMart.Auth.Domain.Roles.Events;
+using TechMart.Auth.Domain.Users.Events;
+using TechMart.Auth.Infrastructure.Events;
+
 namespace TechMart.Auth.Infrastructure.BackgroundServices;
 
 public class OutboxPublisherService : BackgroundService
@@ -6,7 +15,10 @@ public class OutboxPublisherService : BackgroundService
     private readonly ILogger<OutboxPublisherService> _logger;
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(30);
 
-    public OutboxPublisherService(IServiceProvider serviceProvider, ILogger<OutboxPublisherService> logger)
+    public OutboxPublisherService(
+        IServiceProvider serviceProvider,
+        ILogger<OutboxPublisherService> logger
+    )
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
@@ -38,7 +50,10 @@ public class OutboxPublisherService : BackgroundService
         var kafkaProducer = scope.ServiceProvider.GetRequiredService<IKafkaProducer>();
         var eventSerializer = scope.ServiceProvider.GetRequiredService<IEventSerializer>();
 
-        var unprocessedMessages = await outboxRepository.GetUnprocessedMessagesAsync(100, cancellationToken);
+        var unprocessedMessages = await outboxRepository.GetUnprocessedMessagesAsync(
+            100,
+            cancellationToken
+        );
 
         foreach (var message in unprocessedMessages)
         {
@@ -49,7 +64,12 @@ public class OutboxPublisherService : BackgroundService
 
                 // Deserialize and publish
                 var domainEvent = eventSerializer.Deserialize(message.EventType, message.EventData);
-                await kafkaProducer.PublishAsync(topic, message.EventId.ToString(), domainEvent, cancellationToken);
+                await kafkaProducer.PublishAsync(
+                    topic,
+                    message.EventId.ToString(),
+                    domainEvent,
+                    cancellationToken
+                );
 
                 // Mark as processed
                 message.MarkAsProcessed();
@@ -67,7 +87,10 @@ public class OutboxPublisherService : BackgroundService
                 // Delete message if max retries exceeded
                 if (!message.ShouldRetry)
                 {
-                    _logger.LogWarning("Outbox message {MessageId} exceeded max retries, deleting", message.Id);
+                    _logger.LogWarning(
+                        "Outbox message {MessageId} exceeded max retries, deleting",
+                        message.Id
+                    );
                     await outboxRepository.DeleteAsync(message.Id, cancellationToken);
                 }
             }
@@ -85,7 +108,7 @@ public class OutboxPublisherService : BackgroundService
             nameof(UserStatusChangedEvent) => "auth.user.status-changed",
             nameof(UserRoleAssignedEvent) => "auth.user.role-assigned",
             nameof(UserRoleRemovedEvent) => "auth.user.role-removed",
-            _ => "auth.events.unknown"
+            _ => "auth.events.unknown",
         };
     }
 }
