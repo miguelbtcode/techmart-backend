@@ -1,12 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Migrations.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using TechMart.Auth.Application.Abstractions.Authentication;
-using TechMart.Auth.Application.Abstractions.Caching;
-using TechMart.Auth.Application.Abstractions.Contracts;
 using TechMart.Auth.Application.Abstractions.Events;
 using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Domain.Primitives;

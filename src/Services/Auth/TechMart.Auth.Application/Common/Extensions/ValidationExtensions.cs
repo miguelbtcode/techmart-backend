@@ -45,7 +45,7 @@ public static class ValidationExtensions
             .NotEmpty()
             .WithMessage("Email is required")
             .WithErrorCode("Required")
-            .Must(email => Email.IsValidFormat(email))
+            .EmailAddress()
             .WithMessage("Invalid email format")
             .WithErrorCode("InvalidFormat");
     }

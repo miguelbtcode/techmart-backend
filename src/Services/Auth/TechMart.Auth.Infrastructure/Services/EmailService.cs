@@ -3,7 +3,7 @@ using System.Net.Mail;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TechMart.Auth.Application.Abstractions.Contracts;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Infrastructure.Services.Settings;
 
 namespace TechMart.Auth.Infrastructure.Services;
