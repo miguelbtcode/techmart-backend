@@ -1,5 +1,5 @@
 using TechMart.Auth.Application.Abstractions.Contracts;
-using TechMart.Auth.Application.Abstractions.Messaging;
+using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.ValueObjects;
 

@@ -1,7 +1,7 @@
 using TechMart.Auth.Application.Abstractions.Authentication;
 using TechMart.Auth.Application.Abstractions.Contracts;
-using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
 using TechMart.Auth.Domain.Users.ValueObjects;

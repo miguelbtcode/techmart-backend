@@ -1,9 +1,9 @@
 using TechMart.Auth.API.Common.Constants;
 using TechMart.Auth.API.Common.Responses;
 using TechMart.Auth.API.Extensions;
-using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Commands.RegisterUser;
 using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Messaging.Commands;
 
 namespace TechMart.Auth.API.Endpoints.Auth;
 

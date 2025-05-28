@@ -1,5 +1,5 @@
-using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Messaging.Commands;
 
 namespace TechMart.Auth.Application.Features.Users.Commands.Login;
 

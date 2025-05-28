@@ -1,6 +1,6 @@
 using TechMart.Auth.Application.Abstractions.Contracts;
-using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Messaging.Queries;
 using TechMart.Auth.Domain.Primitives;
 
 namespace TechMart.Auth.Application.Features.Users.Queries.ValidateRefreshToken;

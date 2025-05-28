@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using TechMart.Auth.API.Common.Constants;
 using TechMart.Auth.API.Common.Responses;
 using TechMart.Auth.API.Extensions;
-using TechMart.Auth.Application.Abstractions.Messaging;
 using TechMart.Auth.Application.Features.Users.Commands.UpdateProfile;
+using TechMart.Auth.Application.Messaging.Commands;
 
 namespace TechMart.Auth.API.Endpoints.Users;
 
