@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TechMart.Auth.Application.Abstractions.Authentication;
+using TechMart.Auth.Application.Contracts.Authentication;
 using TechMart.Auth.Infrastructure.Settings;
 
 namespace TechMart.Auth.Infrastructure.Authentication;

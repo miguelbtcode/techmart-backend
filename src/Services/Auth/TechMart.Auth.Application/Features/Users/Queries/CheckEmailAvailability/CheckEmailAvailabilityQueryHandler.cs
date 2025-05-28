@@ -26,7 +26,7 @@ internal sealed class CheckEmailAvailabilityQueryHandler(IUnitOfWork unitOfWork)
             cancellationToken
         );
 
-        var dto = new EmailAvailabilityVm(isAvailable, request.Email);
+        var dto = new CheckEmailAvailabilityVm(isAvailable, request.Email);
 
         return Result.Success(dto);
     }

@@ -4,10 +4,8 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using TechMart.Auth.Application.Abstractions.Authentication;
 using TechMart.Auth.Domain.Users.Entities;
 using TechMart.Auth.Infrastructure.Settings;
-using TokenValidationResult = TechMart.Auth.Application.Abstractions.Authentication.TokenValidationResult;
 
 namespace TechMart.Auth.Infrastructure.Authentication;
 
