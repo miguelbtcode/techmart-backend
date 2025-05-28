@@ -1,7 +1,6 @@
 using System.Reflection;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using TechMart.Auth.Application.Behaviors;
 using TechMart.Auth.Application.Common.Behaviors;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Application.Messaging.Queries;
@@ -67,21 +66,6 @@ public static class ApplicationServiceRegistration
 
     private static void AddDecorators(IServiceCollection services)
     {
-        // Validation Decorators (se ejecutan primero)
-        services.Decorate(
-            typeof(ICommandHandler<,>),
-            typeof(ValidationDecorator.CommandHandler<,>)
-        );
-        services.Decorate(
-            typeof(ICommandHandler<>),
-            typeof(ValidationDecorator.CommandBaseHandler<>)
-        );
-
-        // Logging Decorators (se ejecutan después de la validación)
-        services.Decorate(typeof(IQueryHandler<,>), typeof(LoggingDecorator.QueryHandler<,>));
-        services.Decorate(typeof(ICommandHandler<,>), typeof(LoggingDecorator.CommandHandler<,>));
-        services.Decorate(typeof(ICommandHandler<>), typeof(LoggingDecorator.CommandBaseHandler<>));
-
         // Aquí podrías agregar más decorators si los necesitas:
         // - Performance/Timing Decorator
         // - Caching Decorator

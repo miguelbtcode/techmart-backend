@@ -9,9 +9,9 @@ namespace TechMart.Auth.Domain.Users.Events;
 /// <param name="Email">Email address of the new user</param>
 /// <param name="FirstName">First name of the new user</param>
 /// <param name="LastName">Last name of the new user</param>
-public sealed record UserRegisteredEvent(
-    Guid UserId,
-    string Email,
-    string FirstName,
-    string LastName
-) : DomainEventBase;
+public sealed record UserCreatedEvent(Guid UserId, string Email, string FirstName, string LastName)
+    : DomainEventBase,
+        ICriticalDomainEvent
+{
+    public int Priority => 1; // Máxima prioridad
+}

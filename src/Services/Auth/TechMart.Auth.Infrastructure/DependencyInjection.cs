@@ -8,7 +8,7 @@ using TechMart.Auth.Application.Abstractions.Authentication;
 using TechMart.Auth.Application.Abstractions.Caching;
 using TechMart.Auth.Application.Abstractions.Contracts;
 using TechMart.Auth.Application.Abstractions.Events;
-using TechMart.Auth.Application.Services;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Roles.Repository;
 using TechMart.Auth.Domain.Users.Repository;

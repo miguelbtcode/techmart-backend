@@ -167,7 +167,7 @@ public class OutboxPublisherService : BackgroundService
     {
         return eventType switch
         {
-            nameof(UserRegisteredEvent) => "auth.user.registered",
+            nameof(UserCreatedEvent) => "auth.user.created",
             nameof(UserEmailConfirmedEvent) => "auth.user.email-confirmed",
             nameof(UserLoggedInEvent) => "auth.user.logged-in",
             nameof(UserPasswordChangedEvent) => "auth.user.password-changed",

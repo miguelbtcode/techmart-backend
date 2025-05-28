@@ -43,7 +43,7 @@ public sealed class User : AggregateRoot<UserId>
         if (createdBy.HasValue)
             SetCreatedBy(createdBy.Value);
 
-        RaiseDomainEvent(new UserRegisteredEvent(Id, Email.Value, FirstName, LastName));
+        RaiseDomainEvent(new UserCreatedEvent(Id, Email.Value, FirstName, LastName));
     }
 
     #region Properties
