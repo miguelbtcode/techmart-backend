@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using TechMart.Auth.Application.Contracts.Infrastructure;
+using TechMart.Auth.Application.Messaging.Pipeline;
 using TechMart.Auth.Application.Messaging.Queries;
 
 namespace TechMart.Auth.Application.Common.Behaviors;

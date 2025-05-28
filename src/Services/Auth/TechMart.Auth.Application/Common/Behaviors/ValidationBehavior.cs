@@ -1,6 +1,5 @@
 using FluentValidation;
-using FluentValidation.Results;
-using TechMart.Auth.Domain.Primitives;
+using TechMart.Auth.Application.Messaging.Pipeline;
 
 namespace TechMart.Auth.Application.Common.Behaviors;
 

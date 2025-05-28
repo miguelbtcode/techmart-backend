@@ -2,8 +2,7 @@ using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Serilog.Context;
 using TechMart.Auth.Application.Contracts.Authentication;
-using TechMart.Auth.Application.Messaging.Commands;
-using TechMart.Auth.Application.Messaging.Queries;
+using TechMart.Auth.Application.Messaging.Pipeline;
 using TechMart.Auth.Domain.Primitives;
 
 namespace TechMart.Auth.Application.Common.Behaviors;

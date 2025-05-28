@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
+using TechMart.Auth.Application.Common.Models;
 using TechMart.Auth.Application.Contracts.Persistence;
 using TechMart.Auth.Application.Messaging.Commands;
+using TechMart.Auth.Application.Messaging.Pipeline;
 
 namespace TechMart.Auth.Application.Common.Behaviors;
 

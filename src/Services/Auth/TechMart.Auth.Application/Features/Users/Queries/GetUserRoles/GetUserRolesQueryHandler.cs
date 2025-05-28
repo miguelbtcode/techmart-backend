@@ -1,4 +1,4 @@
-using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Features.Shared.Vms;
 using TechMart.Auth.Application.Messaging.Queries;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;

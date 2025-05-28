@@ -1,4 +1,4 @@
-using TechMart.Auth.Application.Features.Users.Vms;
+using TechMart.Auth.Application.Features.Shared.Vms;
 
 namespace TechMart.Auth.Application.Features.Users.Queries.GetUserRoles;
 

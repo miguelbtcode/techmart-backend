@@ -1,5 +1,4 @@
 using TechMart.Auth.Application.Contracts.Authentication;
-using TechMart.Auth.Application.Features.Users.Dtos;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Roles.Entities;

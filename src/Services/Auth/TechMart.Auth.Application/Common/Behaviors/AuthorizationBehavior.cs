@@ -1,12 +1,7 @@
 using System.Reflection;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using TechMart.Auth.Application.Contracts.Authentication;
-using TechMart.Auth.Application.Contracts.Services;
-using TechMart.Auth.Application.Messaging.Commands;
-using TechMart.Auth.Application.Messaging.Queries;
-using TechMart.Auth.Domain.Primitives;
+using TechMart.Auth.Application.Messaging.Pipeline;
 
 namespace TechMart.Auth.Application.Common.Behaviors;
 
