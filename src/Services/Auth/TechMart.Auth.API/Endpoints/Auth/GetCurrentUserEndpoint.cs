@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using TechMart.Auth.API.Common.Constants;
 using TechMart.Auth.API.Common.Responses;
 using TechMart.Auth.API.Extensions;
-using TechMart.Auth.Application.Features.Users.Queries.GetCurrentUser;
+using TechMart.Auth.Application.Features.Authentication.Queries.GetCurrentUser;
 using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Application.Messaging.Queries;
 

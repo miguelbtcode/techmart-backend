@@ -1,4 +1,3 @@
-using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Application.Messaging.Queries;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -7,9 +6,9 @@ using TechMart.Auth.Domain.Users.ValueObjects;
 namespace TechMart.Auth.Application.Features.Users.Queries.GetUserById;
 
 internal sealed class GetUserByIdQueryHandler(IUnitOfWork unitOfWork)
-    : IQueryHandler<GetUserByIdQuery, UserDetailVm>
+    : IQueryHandler<GetUserByIdQuery, GetUserByIdQueryVm>
 {
-    public async Task<Result<UserDetailVm>> Handle(
+    public async Task<Result<GetUserByIdQueryVm>> Handle(
         GetUserByIdQuery request,
         CancellationToken cancellationToken
     )
@@ -19,11 +18,11 @@ internal sealed class GetUserByIdQueryHandler(IUnitOfWork unitOfWork)
         var user = await unitOfWork.Users.GetByIdWithRolesAsync(userId, cancellationToken);
 
         if (user is null)
-            return Result.Failure<UserDetailVm>(UserErrors.NotFound(request.UserId));
+            return Result.Failure<GetUserByIdQueryVm>(UserErrors.NotFound(request.UserId));
 
         var roles = user.GetRoleNames();
 
-        var dto = new UserDetailVm(
+        var dto = new GetUserByIdQueryVm(
             user.Id.Value,
             user.Email.Value,
             user.FirstName,

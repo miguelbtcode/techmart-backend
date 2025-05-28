@@ -7,9 +7,9 @@ using TechMart.Auth.Domain.Users.ValueObjects;
 namespace TechMart.Auth.Application.Features.Users.Queries.GetUserRoles;
 
 internal sealed class GetUserRolesQueryHandler(IUnitOfWork unitOfWork)
-    : IQueryHandler<GetUserRolesQuery, UserRolesVm>
+    : IQueryHandler<GetUserRolesQuery, GetUserRolesQueryVm>
 {
-    public async Task<Result<UserRolesVm>> Handle(
+    public async Task<Result<GetUserRolesQueryVm>> Handle(
         GetUserRolesQuery request,
         CancellationToken cancellationToken
     )
@@ -19,7 +19,7 @@ internal sealed class GetUserRolesQueryHandler(IUnitOfWork unitOfWork)
         var userExists = await unitOfWork.Users.AnyAsync(u => u.Id == userId, cancellationToken);
 
         if (!userExists)
-            return Result.Failure<UserRolesVm>(UserErrors.NotFound(request.UserId));
+            return Result.Failure<GetUserRolesQueryVm>(UserErrors.NotFound(request.UserId));
 
         var userRoles = await unitOfWork.UserRoles.GetUserRolesAsync(userId, cancellationToken);
 
@@ -31,7 +31,7 @@ internal sealed class GetUserRolesQueryHandler(IUnitOfWork unitOfWork)
             ur.AssignedAt
         ));
 
-        var vm = new UserRolesVm(request.UserId, roles);
+        var vm = new GetUserRolesQueryVm(request.UserId, roles);
 
         return Result.Success(vm);
     }

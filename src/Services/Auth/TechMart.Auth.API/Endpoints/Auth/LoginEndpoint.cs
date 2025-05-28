@@ -1,7 +1,7 @@
 using TechMart.Auth.API.Common.Constants;
 using TechMart.Auth.API.Common.Responses;
 using TechMart.Auth.API.Extensions;
-using TechMart.Auth.Application.Features.Users.Commands.Login;
+using TechMart.Auth.Application.Features.Authentication.Commands.Login;
 using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Application.Messaging.Commands;
 

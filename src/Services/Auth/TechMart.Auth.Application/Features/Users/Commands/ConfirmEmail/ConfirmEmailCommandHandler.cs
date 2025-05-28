@@ -1,4 +1,4 @@
-using TechMart.Auth.Application.Abstractions.Contracts;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -7,8 +7,8 @@ using TechMart.Auth.Domain.Users.ValueObjects;
 namespace TechMart.Auth.Application.Features.Users.Commands.ConfirmEmail;
 
 internal sealed class ConfirmEmailCommandHandler(
-    IUnitOfWork unitOfWork,
-    IEmailConfirmationService emailConfirmationService
+    IEmailConfirmationService emailConfirmationService,
+    IUnitOfWork unitOfWork
 ) : ICommandHandler<ConfirmEmailCommand>
 {
     public async Task<Result> Handle(
@@ -22,7 +22,6 @@ internal sealed class ConfirmEmailCommandHandler(
             request.Token,
             cancellationToken
         );
-
         if (!isValidToken)
             return UserErrors.InvalidTokenEmailConfirm();
 
@@ -32,7 +31,6 @@ internal sealed class ConfirmEmailCommandHandler(
             return emailResult.Error;
 
         var user = await unitOfWork.Users.GetByEmailAsync(emailResult.Value, cancellationToken);
-
         if (user is null)
             return UserErrors.NotFoundByEmail(request.Email);
 

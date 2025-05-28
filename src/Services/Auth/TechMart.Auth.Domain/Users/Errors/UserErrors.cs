@@ -38,6 +38,9 @@ public static class UserErrors
     public static Error PasswordHashRequired() =>
         Error.Validation("USER.PASSWORD_HASH_REQUIRED", "Password hash is required");
 
+    public static Error PasswordsDoNotMatch() =>
+        Error.Validation("USER.PASSWORDS_DO_NOT_MATCH", "Passwords do not match");
+
     public static Error PasswordHashTooLong(int maxLength) =>
         Error.Validation(
             "USER.PASSWORD_HASH_TOO_LONG",

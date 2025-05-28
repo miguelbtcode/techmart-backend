@@ -1,5 +1,5 @@
-using TechMart.Auth.Application.Abstractions.Authentication;
-using TechMart.Auth.Application.Abstractions.Contracts;
+using TechMart.Auth.Application.Contracts.Authentication;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -9,8 +9,8 @@ namespace TechMart.Auth.Application.Features.Users.Commands.ResetPassword;
 
 internal sealed class ResetPasswordCommandHandler(
     IUnitOfWork unitOfWork,
-    IPasswordHasher passwordHasher,
-    IPasswordResetService passwordResetService
+    IPasswordResetService passwordResetService,
+    IPasswordHasher passwordHasher
 ) : ICommandHandler<ResetPasswordCommand>
 {
     public async Task<Result> Handle(

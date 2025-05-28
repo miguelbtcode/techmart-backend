@@ -1,4 +1,3 @@
-using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Application.Messaging.Queries;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -7,16 +6,16 @@ using TechMart.Auth.Domain.Users.ValueObjects;
 namespace TechMart.Auth.Application.Features.Users.Queries.GetUserByEmail;
 
 internal sealed class GetUserByEmailQueryHandler(IUnitOfWork unitOfWork)
-    : IQueryHandler<GetUserByEmailQuery, UserDetailVm>
+    : IQueryHandler<GetUserByEmailQuery, GetUserByEmailQueryVm>
 {
-    public async Task<Result<UserDetailVm>> Handle(
+    public async Task<Result<GetUserByEmailQueryVm>> Handle(
         GetUserByEmailQuery request,
         CancellationToken cancellationToken
     )
     {
         var emailResult = Email.Create(request.Email);
         if (emailResult.IsFailure)
-            return Result.Failure<UserDetailVm>(emailResult.Error);
+            return Result.Failure<GetUserByEmailQueryVm>(emailResult.Error);
 
         var user = await unitOfWork.Users.GetByEmailWithRolesAsync(
             emailResult.Value,
@@ -24,11 +23,11 @@ internal sealed class GetUserByEmailQueryHandler(IUnitOfWork unitOfWork)
         );
 
         if (user is null)
-            return Result.Failure<UserDetailVm>(UserErrors.NotFoundByEmail(request.Email));
+            return Result.Failure<GetUserByEmailQueryVm>(UserErrors.NotFoundByEmail(request.Email));
 
         var roles = user.GetRoleNames();
 
-        var dto = new UserDetailVm(
+        var dto = new GetUserByEmailQueryVm(
             user.Id.Value,
             user.Email.Value,
             user.FirstName,

@@ -1,4 +1,4 @@
-using TechMart.Auth.Application.Abstractions.Authentication;
+using TechMart.Auth.Application.Contracts.Authentication;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -20,7 +20,7 @@ internal sealed class ChangePasswordCommandHandler(
         var user = await unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
 
         if (user is null)
-            return UserErrors.NotFound(request.UserId);
+            return UserErrors.NotFound(userId);
 
         // Verify current password
         if (!passwordHasher.VerifyPassword(request.CurrentPassword, user.PasswordHash))
@@ -35,7 +35,7 @@ internal sealed class ChangePasswordCommandHandler(
         var newPasswordHash = passwordHasher.HashPassword(newPasswordResult.Value.Value);
 
         // Change password
-        var changeResult = user.ChangePassword(newPasswordHash, false, request.UserId);
+        var changeResult = user.ChangePassword(newPasswordHash, false, userId);
         if (changeResult.IsFailure)
             return changeResult.Error;
 

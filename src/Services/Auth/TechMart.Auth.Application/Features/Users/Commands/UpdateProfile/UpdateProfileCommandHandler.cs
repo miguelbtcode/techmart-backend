@@ -17,15 +17,13 @@ internal sealed class UpdateProfileCommandHandler(IUnitOfWork unitOfWork)
         var user = await unitOfWork.Users.GetByIdAsync(userId, cancellationToken);
 
         if (user is null)
-            return UserErrors.NotFound(request.UserId);
+            return UserErrors.NotFound(userId);
 
-        var updateResult = user.UpdateProfile(request.FirstName, request.LastName, request.UserId);
-
+        var updateResult = user.UpdateProfile(request.FirstName, request.LastName, userId);
         if (updateResult.IsFailure)
             return updateResult.Error;
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-
         return Result.Success();
     }
 }

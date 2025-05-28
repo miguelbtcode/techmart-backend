@@ -1,4 +1,3 @@
-using TechMart.Auth.Application.Features.Users.Vms;
 using TechMart.Auth.Application.Messaging.Queries;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.ValueObjects;
@@ -6,16 +5,16 @@ using TechMart.Auth.Domain.Users.ValueObjects;
 namespace TechMart.Auth.Application.Features.Users.Queries.CheckEmailAvailability;
 
 internal sealed class CheckEmailAvailabilityQueryHandler(IUnitOfWork unitOfWork)
-    : IQueryHandler<CheckEmailAvailabilityQuery, EmailAvailabilityVm>
+    : IQueryHandler<CheckEmailAvailabilityQuery, CheckEmailAvailabilityVm>
 {
-    public async Task<Result<EmailAvailabilityVm>> Handle(
+    public async Task<Result<CheckEmailAvailabilityVm>> Handle(
         CheckEmailAvailabilityQuery request,
         CancellationToken cancellationToken
     )
     {
         var emailResult = Email.Create(request.Email);
         if (emailResult.IsFailure)
-            return Result.Failure<EmailAvailabilityVm>(emailResult.Error);
+            return Result.Failure<CheckEmailAvailabilityVm>(emailResult.Error);
 
         var excludeUserId = request.ExcludeUserId.HasValue
             ? UserId.From(request.ExcludeUserId.Value)
