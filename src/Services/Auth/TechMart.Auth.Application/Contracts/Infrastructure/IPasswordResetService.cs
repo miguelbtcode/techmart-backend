@@ -1,3 +1,4 @@
+// Application/Contracts/Infrastructure/IPasswordResetService.cs
 using TechMart.Auth.Domain.Users.ValueObjects;
 
 namespace TechMart.Auth.Application.Contracts.Infrastructure;
@@ -35,18 +36,18 @@ public interface IPasswordResetService
     Task InvalidateAllTokensAsync(UserId userId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if a token is valid without consuming it
+    /// Checks if a password reset token is valid without consuming it
     /// </summary>
-    Task<bool> IsTokenValidAsync(
+    Task<bool> IsPasswordResetTokenValidAsync(
         string email,
         string token,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets token expiration time
+    /// Gets password reset token expiration time
     /// </summary>
-    Task<DateTime?> GetTokenExpirationAsync(
+    Task<DateTime?> GetPasswordResetTokenExpirationAsync(
         string token,
         CancellationToken cancellationToken = default
     );

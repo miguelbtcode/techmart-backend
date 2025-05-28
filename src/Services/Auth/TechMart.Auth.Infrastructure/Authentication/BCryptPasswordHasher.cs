@@ -5,10 +5,6 @@ using TechMart.Auth.Infrastructure.Settings;
 
 namespace TechMart.Auth.Infrastructure.Authentication;
 
-/// <summary>
-/// BCrypt implementation of password hashing service
-/// Provides secure password hashing and verification using BCrypt algorithm
-/// </summary>
 public sealed class BCryptPasswordHasher : IPasswordHasher
 {
     private readonly BCryptSettings _settings;
@@ -23,11 +19,6 @@ public sealed class BCryptPasswordHasher : IPasswordHasher
         _logger = logger;
     }
 
-    /// <summary>
-    /// Hashes a password using BCrypt with salt
-    /// </summary>
-    /// <param name="password">Plain text password to hash</param>
-    /// <returns>BCrypt hashed password with salt</returns>
     public string HashPassword(string password)
     {
         if (string.IsNullOrWhiteSpace(password))
@@ -38,14 +29,11 @@ public sealed class BCryptPasswordHasher : IPasswordHasher
 
         try
         {
-            // Generate salt and hash password
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, _settings.WorkFactor);
-
             _logger.LogDebug(
                 "Password hashed successfully with work factor {WorkFactor}",
                 _settings.WorkFactor
             );
-
             return hashedPassword;
         }
         catch (Exception ex)
@@ -55,40 +43,21 @@ public sealed class BCryptPasswordHasher : IPasswordHasher
         }
     }
 
-    /// <summary>
-    /// Verifies a password against its hash
-    /// </summary>
-    /// <param name="password">Plain text password to verify</param>
-    /// <param name="passwordHash">BCrypt hash to verify against</param>
-    /// <returns>True if password matches hash, false otherwise</returns>
     public bool VerifyPassword(string password, string passwordHash)
     {
-        if (string.IsNullOrWhiteSpace(password))
+        if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(passwordHash))
         {
-            _logger.LogWarning("Attempted to verify null or empty password");
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(passwordHash))
-        {
-            _logger.LogWarning("Attempted to verify against null or empty hash");
+            _logger.LogWarning("Attempted to verify with null or empty values");
             return false;
         }
 
         try
         {
-            // Verify password against hash
             var isValid = BCrypt.Net.BCrypt.Verify(password, passwordHash);
-
             if (!isValid)
             {
                 _logger.LogWarning("Password verification failed - invalid credentials");
             }
-            else
-            {
-                _logger.LogDebug("Password verified successfully");
-            }
-
             return isValid;
         }
         catch (Exception ex)
@@ -96,5 +65,48 @@ public sealed class BCryptPasswordHasher : IPasswordHasher
             _logger.LogError(ex, "Password verification failed due to exception");
             return false;
         }
+    }
+
+    // Implementar métodos faltantes
+    public bool NeedsRehash(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            return true;
+
+        try
+        {
+            // BCrypt stores the work factor in the hash itself
+            // If the current work factor is higher than the hash's work factor,
+            // then we need to rehash
+            var currentWorkFactor = GetHashStrength(passwordHash);
+            return currentWorkFactor < _settings.WorkFactor;
+        }
+        catch
+        {
+            // If we can't determine the work factor, assume rehash is needed
+            return true;
+        }
+    }
+
+    public int GetHashStrength(string passwordHash)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            return 0;
+
+        try
+        {
+            // BCrypt hash format: $2a$10$... where 10 is the work factor
+            var parts = passwordHash.Split('$');
+            if (parts.Length >= 3 && int.TryParse(parts[2], out var workFactor))
+            {
+                return workFactor;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to extract work factor from password hash");
+        }
+
+        return 0;
     }
 }

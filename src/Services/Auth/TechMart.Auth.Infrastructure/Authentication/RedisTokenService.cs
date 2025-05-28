@@ -2,18 +2,21 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using TechMart.Auth.Application.Abstractions.Caching;
-using TechMart.Auth.Application.Abstractions.Contracts;
+using TechMart.Auth.Application.Contracts.Authentication;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 using TechMart.Auth.Domain.Users.Entities;
 using TechMart.Auth.Domain.Users.ValueObjects;
 using TechMart.Auth.Infrastructure.Authentication.Models;
 using TechMart.Auth.Infrastructure.Caching;
 using TechMart.Auth.Infrastructure.Settings;
-using TokenValidationResult = TechMart.Auth.Application.Abstractions.Authentication.TokenValidationResult;
 
 namespace TechMart.Auth.Infrastructure.Authentication;
 
-public class RedisTokenService
+/// <summary>
+/// Redis-based implementation of token services
+/// Handles refresh tokens, password reset tokens, and email confirmation tokens
+/// </summary>
+public sealed class RedisTokenService
     : IRefreshTokenService,
         IPasswordResetService,
         IEmailConfirmationService
@@ -22,55 +25,63 @@ public class RedisTokenService
     private readonly JwtSettings _jwtSettings;
     private readonly ILogger<RedisTokenService> _logger;
 
+    // Token expiration constants
+    private static readonly TimeSpan EmailConfirmationExpiry = TimeSpan.FromDays(1);
+    private static readonly TimeSpan PasswordResetExpiry = TimeSpan.FromHours(1);
+
     public RedisTokenService(
         ICacheService cache,
         IOptions<JwtSettings> jwtSettings,
         ILogger<RedisTokenService> logger
     )
     {
-        _cache = cache;
-        _jwtSettings = jwtSettings.Value;
-        _logger = logger;
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        _jwtSettings = jwtSettings?.Value ?? throw new ArgumentNullException(nameof(jwtSettings));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     #region Refresh Tokens
 
-    public async Task<string> GenerateRefreshTokenAsync(User user)
+    public async Task<string> GenerateRefreshTokenAsync(
+        User user,
+        CancellationToken cancellationToken = default
+    )
     {
+        ArgumentNullException.ThrowIfNull(user);
+
         try
         {
             var refreshToken = GenerateSecureToken();
             var tokenHash = ComputeTokenHash(refreshToken);
 
             // Store token data with user ID as key
-            var key = CacheKeys.RefreshToken(user.Id);
-            await _cache.SetAsync(
-                key,
-                new RefreshTokenData
-                {
-                    UserId = user.Id,
-                    Email = user.Email.Value,
-                    TokenHash = tokenHash,
-                    CreatedAt = DateTime.UtcNow,
-                },
-                TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays)
-            );
+            var key = CacheKeys.RefreshToken(user.Id.Value);
+            var tokenData = new RefreshTokenData
+            {
+                UserId = user.Id.Value,
+                Email = user.Email.Value,
+                TokenHash = tokenHash,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            var expiry = TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays);
+            await _cache.SetAsync(key, tokenData, expiry, cancellationToken);
 
             // Store reverse lookup: token hash -> user ID (for validation)
             var reverseKey = CacheKeys.RefreshTokenReverse(tokenHash);
-            await _cache.SetAsync(
-                reverseKey,
-                user.Id,
-                TimeSpan.FromDays(_jwtSettings.RefreshTokenExpirationDays)
-            );
+            await _cache.SetAsync(reverseKey, user.Id.Value, expiry, cancellationToken);
 
-            _logger.LogDebug("Refresh token generated for user {UserId}", user.Id);
+            _logger.LogDebug("Refresh token generated for user {UserId}", user.Id.Value);
             return refreshToken;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to generate refresh token for user {UserId}", user.Id);
-            throw;
+            _logger.LogError(
+                ex,
+                "Failed to generate refresh token for user {UserId}",
+                user.Id.Value
+            );
+            throw new InvalidOperationException("Failed to generate refresh token", ex);
         }
     }
 
@@ -79,11 +90,19 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+        {
+            return new TokenValidationResult(
+                false,
+                null,
+                null,
+                null,
+                "Refresh token is null or empty"
+            );
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(refreshToken))
-                return new TokenValidationResult(false, null, null);
-
             var tokenHash = ComputeTokenHash(refreshToken);
 
             // Find user ID using reverse lookup
@@ -93,7 +112,13 @@ public class RedisTokenService
             if (userId == Guid.Empty)
             {
                 _logger.LogWarning("Refresh token not found or expired");
-                return new TokenValidationResult(false, null, null);
+                return new TokenValidationResult(
+                    false,
+                    null,
+                    null,
+                    null,
+                    "Token not found or expired"
+                );
             }
 
             // Verify token data
@@ -103,20 +128,18 @@ public class RedisTokenService
             if (tokenData?.TokenHash != tokenHash)
             {
                 _logger.LogWarning("Refresh token hash mismatch for user {UserId}", userId);
-                return new TokenValidationResult(false, null, null);
+                return new TokenValidationResult(false, null, null, null, "Invalid token");
             }
 
+            var expiresAt = tokenData.CreatedAt.AddDays(_jwtSettings.RefreshTokenExpirationDays);
+
             _logger.LogDebug("Refresh token validated successfully for user {UserId}", userId);
-            return new TokenValidationResult(
-                IsValid: true,
-                UserId: userId,
-                ExpiresAt: tokenData.CreatedAt.AddDays(_jwtSettings.RefreshTokenExpirationDays)
-            );
+            return new TokenValidationResult(IsValid: true, UserId: userId, ExpiresAt: expiresAt);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to validate refresh token");
-            return new TokenValidationResult(false, null, null);
+            return new TokenValidationResult(false, null, null, null, "Token validation failed");
         }
     }
 
@@ -146,7 +169,7 @@ public class RedisTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to revoke refresh token for user {UserId}", userId);
-            throw;
+            throw new InvalidOperationException("Failed to revoke refresh token", ex);
         }
     }
 
@@ -166,7 +189,53 @@ public class RedisTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to revoke all refresh tokens for user {UserId}", userId);
-            throw;
+            throw new InvalidOperationException("Failed to revoke all refresh tokens", ex);
+        }
+    }
+
+    public async Task<IEnumerable<RefreshTokenInfo>> GetActiveTokensAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var key = CacheKeys.RefreshToken(userId);
+            var tokenData = await _cache.GetAsync<RefreshTokenData>(key, cancellationToken);
+
+            if (tokenData == null)
+            {
+                return Enumerable.Empty<RefreshTokenInfo>();
+            }
+
+            var tokenInfo = new RefreshTokenInfo(
+                TokenId: tokenData.TokenHash[..8], // First 8 chars for identification
+                UserId: tokenData.UserId,
+                CreatedAt: tokenData.CreatedAt,
+                ExpiresAt: tokenData.CreatedAt.AddDays(_jwtSettings.RefreshTokenExpirationDays)
+            );
+
+            return new[] { tokenInfo };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get active tokens for user {UserId}", userId);
+            return Enumerable.Empty<RefreshTokenInfo>();
+        }
+    }
+
+    public async Task CleanupExpiredTokensAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // This would be implemented with a background service
+            // For now, Redis handles expiration automatically
+            _logger.LogDebug("Token cleanup completed (handled by Redis TTL)");
+            await Task.CompletedTask;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cleanup expired tokens");
         }
     }
 
@@ -179,26 +248,24 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        ArgumentNullException.ThrowIfNull(userId);
+
         try
         {
             var token = GenerateSecureToken();
             var tokenHash = ComputeTokenHash(token);
 
-            // Use userId as the key for password reset tokens
             var key = CacheKeys.PasswordResetToken(userId.Value.ToString());
-            await _cache.SetAsync(
-                key,
-                new PasswordResetTokenData
-                {
-                    UserId = userId,
-                    TokenHash = tokenHash,
-                    CreatedAt = DateTime.UtcNow,
-                },
-                TimeSpan.FromHours(1),
-                cancellationToken
-            );
+            var tokenData = new PasswordResetTokenData
+            {
+                UserId = userId,
+                TokenHash = tokenHash,
+                CreatedAt = DateTime.UtcNow,
+            };
 
-            _logger.LogDebug("Password reset token generated for user {UserId}", userId);
+            await _cache.SetAsync(key, tokenData, PasswordResetExpiry, cancellationToken);
+
+            _logger.LogDebug("Password reset token generated for user {UserId}", userId.Value);
             return token;
         }
         catch (Exception ex)
@@ -206,9 +273,9 @@ public class RedisTokenService
             _logger.LogError(
                 ex,
                 "Failed to generate password reset token for user {UserId}",
-                userId
+                userId.Value
             );
-            throw;
+            throw new InvalidOperationException("Failed to generate password reset token", ex);
         }
     }
 
@@ -218,13 +285,13 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
-                return null;
-
-            // We need to find the user first, then check their reset token
-            // This is a limitation of our current key structure
             var tokenHash = ComputeTokenHash(token);
 
             // Search pattern for password reset tokens
@@ -241,7 +308,7 @@ public class RedisTokenService
                 {
                     _logger.LogDebug(
                         "Password reset token validated for user {UserId}",
-                        tokenData.UserId
+                        tokenData.UserId.Value
                     );
                     return tokenData.UserId;
                 }
@@ -269,6 +336,11 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return;
+        }
+
         try
         {
             var tokenHash = ComputeTokenHash(token);
@@ -294,7 +366,77 @@ public class RedisTokenService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to invalidate password reset token");
-            throw;
+            throw new InvalidOperationException("Failed to invalidate password reset token", ex);
+        }
+    }
+
+    public async Task InvalidateAllTokensAsync(
+        UserId userId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        try
+        {
+            var key = CacheKeys.PasswordResetToken(userId.Value.ToString());
+            await _cache.RemoveAsync(key, cancellationToken);
+
+            _logger.LogDebug(
+                "All password reset tokens invalidated for user {UserId}",
+                userId.Value
+            );
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to invalidate all tokens for user {UserId}", userId.Value);
+            throw new InvalidOperationException("Failed to invalidate all tokens", ex);
+        }
+    }
+
+    public async Task<bool> IsPasswordResetTokenValidAsync(
+        string email,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        var userId = await ValidateResetTokenAsync(email, token, cancellationToken);
+        return userId != null;
+    }
+
+    public async Task<DateTime?> GetPasswordResetTokenExpirationAsync(
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        try
+        {
+            var tokenHash = ComputeTokenHash(token);
+
+            var pattern = CacheKeys.PasswordResetPattern();
+            var keys = await _cache.GetKeysByPatternAsync(pattern, cancellationToken);
+
+            foreach (var key in keys)
+            {
+                var tokenData = await _cache.GetAsync<PasswordResetTokenData>(
+                    key,
+                    cancellationToken
+                );
+                if (tokenData?.TokenHash == tokenHash)
+                {
+                    return tokenData.CreatedAt.Add(PasswordResetExpiry);
+                }
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get token expiration for token");
+            return null;
         }
     }
 
@@ -307,23 +449,25 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException("Email cannot be null or empty", nameof(email));
+        }
+
         try
         {
             var token = GenerateSecureToken();
             var tokenHash = ComputeTokenHash(token);
 
             var key = CacheKeys.EmailConfirmationToken(email);
-            await _cache.SetAsync(
-                key,
-                new EmailConfirmationTokenData
-                {
-                    Email = email,
-                    TokenHash = tokenHash,
-                    CreatedAt = DateTime.UtcNow,
-                },
-                TimeSpan.FromDays(1),
-                cancellationToken
-            );
+            var tokenData = new EmailConfirmationTokenData
+            {
+                Email = email.ToLowerInvariant(),
+                TokenHash = tokenHash,
+                CreatedAt = DateTime.UtcNow,
+            };
+
+            await _cache.SetAsync(key, tokenData, EmailConfirmationExpiry, cancellationToken);
 
             _logger.LogDebug("Email confirmation token generated for email {Email}", email);
             return token;
@@ -335,7 +479,7 @@ public class RedisTokenService
                 "Failed to generate email confirmation token for email {Email}",
                 email
             );
-            throw;
+            throw new InvalidOperationException("Failed to generate email confirmation token", ex);
         }
     }
 
@@ -345,11 +489,13 @@ public class RedisTokenService
         CancellationToken cancellationToken = default
     )
     {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
-                return false;
-
             var tokenHash = ComputeTokenHash(token);
             var key = CacheKeys.EmailConfirmationToken(email);
             var tokenData = await _cache.GetAsync<EmailConfirmationTokenData>(
@@ -389,19 +535,128 @@ public class RedisTokenService
         }
     }
 
+    public async Task InvalidateTokensAsync(
+        string email,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return;
+        }
+
+        try
+        {
+            var key = CacheKeys.EmailConfirmationToken(email);
+            await _cache.RemoveAsync(key, cancellationToken);
+
+            _logger.LogDebug("Email confirmation tokens invalidated for email {Email}", email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to invalidate email confirmation tokens for email {Email}",
+                email
+            );
+            throw new InvalidOperationException(
+                "Failed to invalidate email confirmation tokens",
+                ex
+            );
+        }
+    }
+
+    public async Task<bool> IsEmailConfirmationTokenValidAsync(
+        string email,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        try
+        {
+            var tokenHash = ComputeTokenHash(token);
+            var key = CacheKeys.EmailConfirmationToken(email);
+            var tokenData = await _cache.GetAsync<EmailConfirmationTokenData>(
+                key,
+                cancellationToken
+            );
+
+            return tokenData?.TokenHash == tokenHash;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to check if email confirmation token is valid for email {Email}",
+                email
+            );
+            return false;
+        }
+    }
+
+    public async Task<DateTime?> GetEmailConfirmationTokenExpirationAsync(
+        string email,
+        string token,
+        CancellationToken cancellationToken = default
+    )
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
+
+        try
+        {
+            var key = CacheKeys.EmailConfirmationToken(email);
+            var tokenData = await _cache.GetAsync<EmailConfirmationTokenData>(
+                key,
+                cancellationToken
+            );
+
+            if (tokenData != null && tokenData.TokenHash == ComputeTokenHash(token))
+            {
+                return tokenData.CreatedAt.Add(EmailConfirmationExpiry);
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to get email confirmation token expiration for email {Email}",
+                email
+            );
+            return null;
+        }
+    }
+
     #endregion
 
     #region Helper Methods
 
-    private string GenerateSecureToken()
+    /// <summary>
+    /// Generates a cryptographically secure random token
+    /// </summary>
+    private static string GenerateSecureToken()
     {
         using var rng = RandomNumberGenerator.Create();
-        var bytes = new byte[32];
+        var bytes = new byte[32]; // 256 bits
         rng.GetBytes(bytes);
-        return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('='); // URL-safe base64
+
+        // URL-safe base64 encoding
+        return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
     }
 
-    private string ComputeTokenHash(string token)
+    /// <summary>
+    /// Computes SHA256 hash of a token for secure storage
+    /// </summary>
+    private static string ComputeTokenHash(string token)
     {
         using var sha256 = SHA256.Create();
         var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(token));

@@ -1,6 +1,6 @@
 using TechMart.Auth.Application.Contracts.Authentication;
 using TechMart.Auth.Application.Contracts.Infrastructure;
-using TechMart.Auth.Application.Features.Authentication.Dtos;
+using TechMart.Auth.Application.Features.Shared.Dtos;
 using TechMart.Auth.Application.Messaging.Commands;
 using TechMart.Auth.Domain.Primitives;
 using TechMart.Auth.Domain.Users.Errors;
@@ -65,7 +65,7 @@ internal sealed class LoginCommandHandler(
 
         var roles = user.GetRoleNames();
 
-        var userInfo = new UserInfoDto(
+        var userInfo = new UserInfoVm(
             user.Id.Value,
             user.Email.Value,
             user.FirstName,

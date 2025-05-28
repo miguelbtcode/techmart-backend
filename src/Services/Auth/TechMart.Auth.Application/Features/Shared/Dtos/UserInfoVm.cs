@@ -1,6 +1,6 @@
-namespace TechMart.Auth.Application.Features.Authentication.Dtos;
+namespace TechMart.Auth.Application.Features.Shared.Dtos;
 
-public sealed record UserInfoDto(
+public sealed record UserInfoVm(
     Guid Id,
     string Email,
     string FirstName,

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using TechMart.Auth.Application.Abstractions.Caching;
+using TechMart.Auth.Application.Contracts.Infrastructure;
 
 namespace TechMart.Auth.Infrastructure.Caching;
 

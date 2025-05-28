@@ -11,7 +11,7 @@ public interface IEmailConfirmationService
     Task<string> GenerateTokenAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Validates an email confirmation token
+    /// Validates an email confirmation token (one-time use)
     /// </summary>
     Task<bool> ValidateTokenAsync(
         string email,
@@ -25,18 +25,18 @@ public interface IEmailConfirmationService
     Task InvalidateTokensAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Checks if a token exists and is valid (without consuming it)
+    /// Checks if an email confirmation token is valid without consuming it
     /// </summary>
-    Task<bool> IsTokenValidAsync(
+    Task<bool> IsEmailConfirmationTokenValidAsync(
         string email,
         string token,
         CancellationToken cancellationToken = default
     );
 
     /// <summary>
-    /// Gets token expiration time
+    /// Gets email confirmation token expiration time
     /// </summary>
-    Task<DateTime?> GetTokenExpirationAsync(
+    Task<DateTime?> GetEmailConfirmationTokenExpirationAsync(
         string email,
         string token,
         CancellationToken cancellationToken = default
