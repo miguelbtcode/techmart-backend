@@ -1,6 +1,8 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Authentication.Commands;
-using AuthMicroservice.Application.Registration.Commands;
+using AuthMicroservice.Application.Features.Authentication.Commands.Login;
+using AuthMicroservice.Application.Features.Authentication.Commands.Logout;
+using AuthMicroservice.Application.Features.Authentication.Commands.RefreshToken;
+using AuthMicroservice.Application.Features.UserManagement.Commands.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

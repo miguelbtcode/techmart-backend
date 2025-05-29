@@ -1,6 +1,7 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.UserProfile.Commands;
-using AuthMicroservice.Application.UserProfile.Queries;
+using AuthMicroservice.Application.Features.UserManagement.Commands.ChangePassword;
+using AuthMicroservice.Application.Features.UserManagement.Commands.UpdateProfile;
+using AuthMicroservice.Application.Features.UserManagement.Queries.GetUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

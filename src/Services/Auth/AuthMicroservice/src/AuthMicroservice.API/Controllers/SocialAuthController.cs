@@ -1,6 +1,7 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.SocialAuth.Commands;
-using AuthMicroservice.Application.SocialAuth.Queries;
+using AuthMicroservice.Application.Features.SocialAuthentication.Commands.GitHubLogin;
+using AuthMicroservice.Application.Features.SocialAuthentication.Commands.GoogleLogin;
+using AuthMicroservice.Application.Features.SocialAuthentication.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

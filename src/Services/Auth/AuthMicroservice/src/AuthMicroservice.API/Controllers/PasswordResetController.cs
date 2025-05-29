@@ -1,5 +1,6 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.PasswordReset.Commands;
+using AuthMicroservice.Application.Features.PasswordReset.Commands.ForgotPassword;
+using AuthMicroservice.Application.Features.PasswordReset.Commands.ResetPassword;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 

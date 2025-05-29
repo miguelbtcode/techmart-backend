@@ -1,5 +1,6 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.EmailVerification.Commands;
+using AuthMicroservice.Application.Features.EmailVerification.Commands.SendVerificationEmail;
+using AuthMicroservice.Application.Features.EmailVerification.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,7 @@ public class EmailVerificationController : BaseApiController
     public async Task<IActionResult> SendVerification()
     {
         var userId = GetCurrentUserId();
-        var command = new SendVerificationCommand(userId);
+        var command = new SendVerificationEmailCommand(userId);
         var result = await _mediator.Send(command);
 
         if (result.IsSuccess)
