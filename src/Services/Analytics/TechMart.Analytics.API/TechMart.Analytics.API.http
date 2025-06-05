@@ -1,6 +1,0 @@
-@TechMart.Analytics.API_HostAddress = http://localhost:5251
-
-GET {{TechMart.Analytics.API_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
