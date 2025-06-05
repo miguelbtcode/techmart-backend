@@ -11,8 +11,4 @@
       <ProjectReference Include="..\TechMart.Product.Domain\TechMart.Product.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Data\EntityFramework\Configurations\" />
-    </ItemGroup>
-
 </Project>
