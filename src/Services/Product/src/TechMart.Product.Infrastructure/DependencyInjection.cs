@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using TechMart.Product.Application.Contracts.Caching;
+using TechMart.Product.Application.Contracts.Identity;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Category;
 using TechMart.Product.Domain.Inventory;
@@ -14,7 +16,6 @@ using TechMart.Product.Infrastructure.Identity;
 using TechMart.Product.Infrastructure.Repositories.EntityFramework;
 using TechMart.Product.Infrastructure.Services;
 using TechMart.SharedKernel.Abstractions;
-using TechMart.SharedKernel.Extensions.ServiceCollection;
 using IUnitOfWork = TechMart.Product.Domain.Abstractions.IUnitOfWork;
 
 namespace TechMart.Product.Infrastructure;
@@ -34,6 +35,9 @@ public static class DependencyInjection
         // Services
         services.AddInfrastructureServices();
         
+        // Cache
+        services.AddCacheServices(configuration);
+        
         // Add interceptors
         services.AddInterceptors();
         
@@ -47,7 +51,25 @@ public static class DependencyInjection
         this IServiceCollection services, 
         IConfiguration configuration)
     {
-        services.AddTechMartPostgreSQL<ApplicationDbContext>(configuration);
+        var connectionString = configuration.GetConnectionString("PostgreSQL")
+                               ?? throw new InvalidOperationException($"Connection string '{"PostgreSQL"}' not found.");
+
+        services.AddDbContext<ApplicationDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString, npgsqlOptions =>
+            {
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(5),
+                    errorCodesToAdd: null);
+                
+                npgsqlOptions.CommandTimeout(30);
+            });
+
+            options.EnableServiceProviderCaching();
+            options.EnableSensitiveDataLogging(false);
+            options.UseSnakeCaseNamingConvention();
+        });
         
         return services;
     }
@@ -62,30 +84,34 @@ public static class DependencyInjection
         return services;
     }
     
-    private static void AddCacheServices(IServiceCollection services, IConfiguration configuration)
+    private static void AddCacheServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // Try to configure Redis first
         var redisConnectionString = configuration.GetConnectionString("Redis");
-        
-        if (!string.IsNullOrEmpty(redisConnectionString))
+
+        if (!string.IsNullOrWhiteSpace(redisConnectionString))
         {
             try
             {
-                // Use generic Redis configuration from SharedKernel
-                services.AddTechMartRedis(configuration);
-                
-                // Register the specific cache service implementation for this microservice
+                // Configurar y registrar ConnectionMultiplexer como singleton
+                services.AddSingleton<IConnectionMultiplexer>(sp =>
+                    ConnectionMultiplexer.Connect(redisConnectionString));
+
+                // Registrar Redis como IDistributedCache
+                services.AddStackExchangeRedisCache(options =>
+                {
+                    options.Configuration = redisConnectionString;
+                });
+
+                // Registrar implementación concreta del servicio de caché
                 services.AddScoped<ICacheService, RedisCacheService>();
             }
             catch (Exception)
             {
-                // If Redis configuration fails, fallback to in-memory cache
                 AddInMemoryCacheServices(services);
             }
         }
         else
         {
-            // No Redis configured, use in-memory cache
             AddInMemoryCacheServices(services);
         }
     }
@@ -93,7 +119,7 @@ public static class DependencyInjection
     private static void AddInMemoryCacheServices(IServiceCollection services)
     {
         // Use generic in-memory cache configuration from SharedKernel
-        services.AddTechMartInMemoryCache();
+        services.AddDistributedMemoryCache();
         
         // Register the specific cache service implementation for this microservice
         services.AddScoped<ICacheService, InMemoryCacheService>();
@@ -107,7 +133,10 @@ public static class DependencyInjection
         
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
-
+        
+        // Add claims service
+        services.AddScoped<IClaimsService, ClaimsService>();
+        
         return services;
     }
     
@@ -122,30 +151,6 @@ public static class DependencyInjection
     private static IServiceCollection AddUnitOfWork(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        return services;
-    }
-    
-    public static IServiceCollection AddInfrastructureDevelopment(
-        this IServiceCollection services, 
-        IConfiguration configuration)
-    {
-        services.AddInfrastructure(configuration);
-        
-        // Add development-specific services here
-        // For example: in-memory caching, local file storage, etc.
-        
-        return services;
-    }
-    
-    public static IServiceCollection AddInfrastructureProduction(
-        this IServiceCollection services, 
-        IConfiguration configuration)
-    {
-        services.AddInfrastructure(configuration);
-        
-        // Add production-specific services here
-        // For example: Redis caching, cloud storage, monitoring, etc.
-        
         return services;
     }
 }

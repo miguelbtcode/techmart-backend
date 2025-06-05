@@ -1,6 +1,8 @@
 using System.Reflection;
+using FluentValidation;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using TechMart.SharedKernel.Extensions.ServiceCollection;
+using TechMart.Product.Application.Common.Behaviors;
 
 namespace TechMart.Product.Application;
 
@@ -11,11 +13,14 @@ public static class DependencyInjection
         var assembly = Assembly.GetExecutingAssembly();
 
         // MediatR with TechMart behaviors
-        services.AddTechMartMediatR(assembly);
-
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(assembly));
+        
         // FluentValidation
-        services.AddTechMartValidation(assembly);
-
+        services.AddValidatorsFromAssembly(assembly);
+        
+        // Pipeline Behavior
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        
         // AutoMapper
         services.AddAutoMapper(assembly);
 
