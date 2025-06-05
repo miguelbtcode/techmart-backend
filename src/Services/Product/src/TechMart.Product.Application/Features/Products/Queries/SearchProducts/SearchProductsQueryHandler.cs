@@ -6,36 +6,41 @@ using TechMart.Product.Application.Common.DTOs;
 using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
 using TechMart.Product.Domain.Aggregates.ProductAggregate.Specifications;
 using TechMart.SharedKernel.Common;
-using ProductEntity = TechMart.Product.Domain.Aggregates.ProductAggregate.Entities.Product;
 
-namespace TechMart.Product.Application.Features.Products.Queries.GetProducts;
+namespace TechMart.Product.Application.Features.Products.Queries.SearchProducts;
 
-public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<PaginatedResponseDto<ProductDto>>>
+public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Result<PaginatedResponseDto<ProductDto>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
-    private readonly ILogger<GetProductsQueryHandler> _logger;
+    private readonly ILogger<SearchProductsQueryHandler> _logger;
 
-    public GetProductsQueryHandler(
+    public SearchProductsQueryHandler(
         IProductRepository productRepository,
         IMapper mapper,
-        ILogger<GetProductsQueryHandler> logger)
+        ILogger<SearchProductsQueryHandler> logger)
     {
         _productRepository = productRepository;
         _mapper = mapper;
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(SearchProductsQuery request, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Getting products with filters: {@Filters}", request);
+            if (string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                return Result.Failure<PaginatedResponseDto<ProductDto>>(
+                    Error.Validation("Search.EmptyTerm", "Search term cannot be empty"));
+            }
 
-            // Build the specification based on query parameters
-            var specification = BuildSpecification(request);
+            _logger.LogInformation("Searching products with term: {SearchTerm}", request.SearchTerm);
 
-            // Get paginated products
+            // Build search specification
+            var specification = BuildSearchSpecification(request);
+
+            // Get paginated results
             var pagedProducts = await _productRepository.GetPagedAsync(
                 specification,
                 request.PageNumber,
@@ -45,7 +50,6 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
             // Map to DTOs
             var productDtos = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
 
-            // Create paginated response
             var response = new PaginatedResponseDto<ProductDto>
             {
                 Items = productDtos,
@@ -57,30 +61,29 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
                 HasNextPage = pagedProducts.HasNextPage
             };
 
-            _logger.LogInformation("Successfully retrieved {Count} products", productDtos.Count);
+            _logger.LogInformation("Found {Count} products for search term: {SearchTerm}", 
+                pagedProducts.TotalCount, request.SearchTerm);
 
             return Result.Success(response);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting products with filters: {@Filters}", request);
+            _logger.LogError(ex, "Error searching products with term: {SearchTerm}", request.SearchTerm);
             return Result.Failure<PaginatedResponseDto<ProductDto>>(
-                Error.Failure("Products.GetFailed", "Failed to retrieve products"));
+                Error.Failure("Products.SearchFailed", "Failed to search products"));
         }
     }
 
-    private Expression<Func<ProductEntity, bool>> BuildSpecification(GetProductsQuery request)
+    private Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>> BuildSearchSpecification(SearchProductsQuery request)
     {
-        var specifications = new List<Expression<Func<ProductEntity, bool>>>();
+        var specifications = new List<Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>>>();
 
-        // Filter by status
-        if (request.Status.HasValue)
+        // Text search
+        specifications.Add(ProductSpecifications.ContainsText(request.SearchTerm));
+
+        // Include only active products unless specified otherwise
+        if (!request.IncludeInactive)
         {
-            specifications.Add(ProductSpecifications.HasStatus(request.Status.Value));
-        }
-        else
-        {
-            // Default to active products if no status specified
             specifications.Add(ProductSpecifications.IsActive());
         }
 
@@ -96,18 +99,6 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
             specifications.Add(ProductSpecifications.OfBrand(request.BrandId.Value));
         }
 
-        // Filter by featured
-        if (request.IsFeatured.HasValue && request.IsFeatured.Value)
-        {
-            specifications.Add(ProductSpecifications.IsFeatured());
-        }
-
-        // Filter by on sale
-        if (request.IsOnSale.HasValue && request.IsOnSale.Value)
-        {
-            specifications.Add(ProductSpecifications.IsOnSale());
-        }
-
         // Filter by price range
         if (request.MinPrice.HasValue || request.MaxPrice.HasValue)
         {
@@ -116,16 +107,15 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
             specifications.Add(ProductSpecifications.InPriceRange(minPrice, maxPrice));
         }
 
-        // Combine all specifications
         return CombineSpecifications(specifications);
     }
 
-    private Expression<Func<ProductEntity, bool>> CombineSpecifications(
-        List<Expression<Func<ProductEntity, bool>>> specifications)
+    private Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>> CombineSpecifications(
+        List<Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>>> specifications)
     {
         if (!specifications.Any())
         {
-            return x => true; // Return all if no specifications
+            return x => true;
         }
 
         var combinedSpec = specifications.First();
