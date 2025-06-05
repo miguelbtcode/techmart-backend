@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using TechMart.Product.Infrastructure.Data.EntityFramework;
 using TechMart.SharedKernel.Abstractions;
 
 namespace TechMart.Product.Infrastructure.Repositories.EntityFramework;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TechMart.Product.Domain.Product;
 using TechMart.Product.Domain.Product.Enums;
 using TechMart.Product.Domain.Product.ValueObjects;
+using TechMart.Product.Infrastructure.Data.EntityFramework;
 using TechMart.SharedKernel.Common;
 using ProductEntity = TechMart.Product.Domain.Product.Product;
 

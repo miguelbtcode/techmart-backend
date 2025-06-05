@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TechMart.Product.Domain.Brand;
+using TechMart.Product.Infrastructure.Data.EntityFramework;
 
 namespace TechMart.Product.Infrastructure.Repositories.EntityFramework;
 
