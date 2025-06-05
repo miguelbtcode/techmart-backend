@@ -2,9 +2,10 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.BrandAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.CategoryAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
+using TechMart.Product.Domain.Brand;
+using TechMart.Product.Domain.Category;
+using TechMart.Product.Domain.Product;
+using TechMart.Product.Domain.Product.ValueObjects;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Commands.UpdateProduct;
@@ -64,9 +65,9 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
                 tags: request.Tags);
 
             // Update pricing
-            var price = new Domain.Aggregates.ProductAggregate.ValueObjects.Price(request.Price, request.Currency);
+            var price = new Price(request.Price, request.Currency);
             var compareAtPrice = request.CompareAtPrice.HasValue 
-                ? new Domain.Aggregates.ProductAggregate.ValueObjects.Price(request.CompareAtPrice.Value, request.Currency) 
+                ? new Price(request.CompareAtPrice.Value, request.Currency) 
                 : null;
             
             product.UpdatePricing(price, compareAtPrice);
@@ -74,7 +75,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             // Update physical properties if needed
             if (request.Weight.HasValue)
             {
-                var weight = new Domain.Aggregates.ProductAggregate.ValueObjects.Weight(request.Weight.Value, request.WeightUnit ?? "kg");
+                var weight = new Weight(request.Weight.Value, request.WeightUnit ?? "kg");
                 product.UpdatePhysicalProperties(weight, null);
             }
 

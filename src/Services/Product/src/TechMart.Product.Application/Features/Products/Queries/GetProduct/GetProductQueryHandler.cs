@@ -1,9 +1,9 @@
 using AutoMapper;
 using MediatR;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.BrandAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.CategoryAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
+using TechMart.Product.Domain.Brand;
+using TechMart.Product.Domain.Category;
+using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProduct;

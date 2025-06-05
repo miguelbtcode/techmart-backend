@@ -1,6 +1,6 @@
 using MediatR;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Enums;
+using TechMart.Product.Domain.Product.Enums;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProducts;

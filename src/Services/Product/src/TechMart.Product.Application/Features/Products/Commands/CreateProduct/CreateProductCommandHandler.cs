@@ -2,12 +2,12 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.BrandAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.CategoryAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.ValueObjects;
+using TechMart.Product.Domain.Brand;
+using TechMart.Product.Domain.Category;
+using TechMart.Product.Domain.Product;
+using TechMart.Product.Domain.Product.ValueObjects;
 using TechMart.SharedKernel.Common;
-using ProductEntity = TechMart.Product.Domain.Aggregates.ProductAggregate.Entities.Product;
+using ProductEntity = TechMart.Product.Domain.Product.Product;
 
 namespace TechMart.Product.Application.Features.Products.Commands.CreateProduct;
 

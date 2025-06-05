@@ -1,6 +1,6 @@
 using AutoMapper;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Entities;
+using TechMart.Product.Domain.Product.Entities;
 
 namespace TechMart.Product.Application.Common.Mappings;
 
@@ -8,7 +8,7 @@ public class ProductMappingProfile : Profile
 {
     public ProductMappingProfile()
     {
-        CreateMap<Domain.Aggregates.ProductAggregate.Entities.Product, ProductDto>()
+        CreateMap<Domain.Product.Product, ProductDto>()
             .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku.Value))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.Amount))
             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Price.Currency))

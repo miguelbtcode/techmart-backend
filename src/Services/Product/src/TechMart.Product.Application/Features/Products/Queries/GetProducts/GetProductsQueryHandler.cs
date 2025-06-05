@@ -3,10 +3,9 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Specifications;
+using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
-using ProductEntity = TechMart.Product.Domain.Aggregates.ProductAggregate.Entities.Product;
+using ProductEntity = TechMart.Product.Domain.Product.Product;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProducts;
 

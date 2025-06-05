@@ -3,8 +3,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Specifications;
+using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.SearchProducts;
@@ -74,9 +73,9 @@ public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, R
         }
     }
 
-    private Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>> BuildSearchSpecification(SearchProductsQuery request)
+    private Expression<Func<Domain.Product.Product, bool>> BuildSearchSpecification(SearchProductsQuery request)
     {
-        var specifications = new List<Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>>>();
+        var specifications = new List<Expression<Func<Domain.Product.Product, bool>>>();
 
         // Text search
         specifications.Add(ProductSpecifications.ContainsText(request.SearchTerm));
@@ -110,8 +109,8 @@ public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, R
         return CombineSpecifications(specifications);
     }
 
-    private Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>> CombineSpecifications(
-        List<Expression<Func<Domain.Aggregates.ProductAggregate.Entities.Product, bool>>> specifications)
+    private Expression<Func<Domain.Product.Product, bool>> CombineSpecifications(
+        List<Expression<Func<Domain.Product.Product, bool>>> specifications)
     {
         if (!specifications.Any())
         {

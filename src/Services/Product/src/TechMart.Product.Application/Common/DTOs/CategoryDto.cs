@@ -1,4 +1,4 @@
-using TechMart.Product.Domain.Enums;
+using TechMart.Product.Domain.Category;
 
 namespace TechMart.Product.Application.Common.DTOs;
 

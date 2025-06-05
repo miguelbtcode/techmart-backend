@@ -2,8 +2,8 @@ using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.BrandAggregate.Repositories;
-using TechMart.Product.Domain.Aggregates.ProductAggregate.Repositories;
+using TechMart.Product.Domain.Brand;
+using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProductsByBrand;

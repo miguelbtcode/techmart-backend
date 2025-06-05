@@ -1,6 +1,6 @@
 using AutoMapper;
 using TechMart.Product.Application.Common.DTOs;
-using TechMart.Product.Domain.Aggregates.CategoryAggregate.Entities;
+using TechMart.Product.Domain.Category;
 
 namespace TechMart.Product.Application.Common.Mappings;
 
