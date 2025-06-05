@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Contracts.Caching;
+using TechMart.Product.Application.Contracts.Infrastructure;
 
 namespace TechMart.Product.Infrastructure.Caching;
 

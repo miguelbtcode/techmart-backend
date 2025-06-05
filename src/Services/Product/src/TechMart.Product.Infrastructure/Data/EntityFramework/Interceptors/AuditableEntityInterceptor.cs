@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using TechMart.Product.Application.Contracts.Identity;
 using TechMart.SharedKernel.Abstractions;
 using TechMart.SharedKernel.Base;
 

@@ -1,6 +1,5 @@
 using TechMart.Product.Application.Context;
 using TechMart.Product.Application.Contracts.Identity;
-using TechMart.SharedKernel.Abstractions;
 
 namespace TechMart.Product.Infrastructure.Identity;
 

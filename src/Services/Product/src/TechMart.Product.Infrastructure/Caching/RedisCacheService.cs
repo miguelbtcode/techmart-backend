@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using TechMart.Product.Application.Contracts.Caching;
+using TechMart.Product.Application.Contracts.Infrastructure;
 
 namespace TechMart.Product.Infrastructure.Caching;
 
