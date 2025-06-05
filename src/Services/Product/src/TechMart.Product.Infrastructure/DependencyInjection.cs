@@ -15,6 +15,7 @@ using TechMart.Product.Infrastructure.Repositories.EntityFramework;
 using TechMart.Product.Infrastructure.Services;
 using TechMart.SharedKernel.Abstractions;
 using TechMart.SharedKernel.Extensions.ServiceCollection;
+using IUnitOfWork = TechMart.Product.Domain.Abstractions.IUnitOfWork;
 
 namespace TechMart.Product.Infrastructure;
 
@@ -33,6 +34,9 @@ public static class DependencyInjection
         // Services
         services.AddInfrastructureServices();
         
+        // Add interceptors
+        services.AddInterceptors();
+        
         // Unit of Work
         services.AddUnitOfWork();
 
@@ -43,31 +47,8 @@ public static class DependencyInjection
         this IServiceCollection services, 
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-                               ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-        // Register interceptors
-        services.AddScoped<AuditableEntityInterceptor>();
-        services.AddScoped<DomainEventInterceptor>();
-
-        // Register DbContext with PostgreSQL
-        services.AddDbContext<ApplicationDbContext>(options =>
-        {
-            options.UseNpgsql(connectionString, npgsqlOptions =>
-            {
-                npgsqlOptions.EnableRetryOnFailure(
-                    maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(5),
-                    errorCodesToAdd: null);
-                
-                npgsqlOptions.CommandTimeout(30);
-                npgsqlOptions.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
-            });
-
-            options.EnableServiceProviderCaching();
-            options.EnableSensitiveDataLogging(false);
-        });
-
+        services.AddTechMartPostgreSQL<ApplicationDbContext>(configuration);
+        
         return services;
     }
     
@@ -126,6 +107,14 @@ public static class DependencyInjection
         
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
+
+        return services;
+    }
+    
+    private static IServiceCollection AddInterceptors(this IServiceCollection services)
+    {
+        services.AddScoped<AuditableEntityInterceptor>();
+        services.AddScoped<DomainEventInterceptor>();
 
         return services;
     }

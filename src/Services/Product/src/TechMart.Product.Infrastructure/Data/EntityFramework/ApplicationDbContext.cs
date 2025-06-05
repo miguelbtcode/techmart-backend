@@ -2,8 +2,9 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Category;
+using TechMart.Product.Domain.Inventory;
+using TechMart.Product.Domain.Inventory.Entities;
 using TechMart.Product.Domain.Product.Entities;
-using TechMart.Product.Infrastructure.Data.EntityFramework.Configurations;
 using TechMart.Product.Infrastructure.Data.EntityFramework.Interceptors;
 using ProductEntity = TechMart.Product.Domain.Product.Product;
 
@@ -27,13 +28,15 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProductEntity> Products => Set<ProductEntity>();
     public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<Category> Categories => Set<Category>();
-    public DbSet<Domain.Inventory.Inventory> Inventories => Set<Domain.Inventory.Inventory>();
+    public DbSet<Inventory> Inventories => Set<Inventory>();
 
     // Child entities
     public DbSet<ProductImage> ProductImages => Set<ProductImage>();
     public DbSet<ProductVariant> ProductVariants => Set<ProductVariant>();
     public DbSet<ProductAttribute> ProductAttributes => Set<ProductAttribute>();
     public DbSet<ProductReview> ProductReviews => Set<ProductReview>();
+    public DbSet<InventoryTransaction> InventoryTransactions => Set<InventoryTransaction>();
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -60,23 +63,31 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply configurations
-        modelBuilder.ApplyConfiguration(new ProductConfiguration());
-        modelBuilder.ApplyConfiguration(new BrandConfiguration());
-        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
-        modelBuilder.ApplyConfiguration(new InventoryConfiguration());
-        modelBuilder.ApplyConfiguration(new ProductImageConfiguration());
-        modelBuilder.ApplyConfiguration(new ProductVariantConfiguration());
-        modelBuilder.ApplyConfiguration(new ProductAttributeConfiguration());
-        modelBuilder.ApplyConfiguration(new ProductReviewConfiguration());
-
-        // PostgreSQL specific configurations
-        ConfigurePostgreSqlSpecifics(modelBuilder);
+        ApplyConfigurations(modelBuilder);
+        // ApplyGlobalQueryFilters(modelBuilder);
+        ConfigureDatabaseSpecificSettings(modelBuilder);
+    }
+    
+    private static void ApplyConfigurations(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 
-    private static void ConfigurePostgreSqlSpecifics(ModelBuilder modelBuilder)
+    private static void ConfigureDatabaseSpecificSettings(ModelBuilder modelBuilder)
     {
-        // Use PostgreSQL naming convention (snake_case)
+        // PostgreSQL specific configurations
+        ConfigurePostgreSQLSettings(modelBuilder);
+
+        // Configure decimal precision globally
+        ConfigureDecimalPrecision(modelBuilder);
+
+        // Configure string lengths globally
+        ConfigureStringLengths(modelBuilder);
+    }
+    
+    private static void ConfigurePostgreSQLSettings(ModelBuilder modelBuilder)
+    {
+        // Use snake_case naming convention for PostgreSQL
         foreach (var entity in modelBuilder.Model.GetEntityTypes())
         {
             // Convert table names to snake_case
@@ -88,10 +99,10 @@ public class ApplicationDbContext : DbContext
                 property.SetColumnName(property.GetColumnName().ToSnakeCase());
             }
 
-            // Convert key names to snake_case
-            foreach (var key in entity.GetKeys())
+            // Convert index names to snake_case
+            foreach (var index in entity.GetIndexes())
             {
-                key.SetName(key.GetName()?.ToSnakeCase());
+                index.SetDatabaseName(index.GetDatabaseName()?.ToSnakeCase());
             }
 
             // Convert foreign key names to snake_case
@@ -99,11 +110,42 @@ public class ApplicationDbContext : DbContext
             {
                 foreignKey.SetConstraintName(foreignKey.GetConstraintName()?.ToSnakeCase());
             }
-
-            // Convert index names to snake_case
-            foreach (var index in entity.GetIndexes())
+        }
+    }
+    
+    private static void ConfigureDecimalPrecision(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
             {
-                index.SetDatabaseName(index.GetDatabaseName()?.ToSnakeCase());
+                if (property.ClrType == typeof(decimal) || property.ClrType == typeof(decimal?))
+                {
+                    // Set default precision for decimal properties
+                    if (!property.GetColumnType().Contains("decimal"))
+                    {
+                        property.SetColumnType("decimal(18,2)");
+                    }
+                }
+            }
+        }
+    }
+    
+    private static void ConfigureStringLengths(ModelBuilder modelBuilder)
+    {
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(string))
+                {
+                    var maxLength = property.GetMaxLength();
+                    if (!maxLength.HasValue)
+                    {
+                        // Set default max length for string properties without explicit length
+                        property.SetMaxLength(500);
+                    }
+                }
             }
         }
     }
