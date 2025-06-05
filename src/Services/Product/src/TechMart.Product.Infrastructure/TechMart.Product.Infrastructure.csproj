@@ -6,4 +6,13 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\TechMart.Product.Application\TechMart.Product.Application.csproj" />
+      <ProjectReference Include="..\TechMart.Product.Domain\TechMart.Product.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Data\EntityFramework\Configurations\" />
+    </ItemGroup>
+
 </Project>
