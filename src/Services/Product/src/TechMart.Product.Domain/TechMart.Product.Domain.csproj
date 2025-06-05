@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <!-- Referencias al SharedKernel -->
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\Shared\TechMart.SharedKernel\src\TechMart.SharedKernel\TechMart.SharedKernel.csproj" />
+    </ItemGroup>
+
 </Project>
