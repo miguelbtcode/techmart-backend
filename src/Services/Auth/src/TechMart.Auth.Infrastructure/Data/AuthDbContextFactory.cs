@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace AuthMicroservice.Infrastructure.Data;
+namespace TechMart.Auth.Infrastructure.Data;
 
 /// <summary>
 /// Factory para crear DbContext en tiempo de diseño (migraciones)
@@ -82,12 +82,12 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
         var currentDirectory = Directory.GetCurrentDirectory();
 
         // Caso 1: Ejecutando desde Infrastructure
-        var apiPath1 = Path.GetFullPath(Path.Combine(currentDirectory, "../AuthMicroservice.API"));
+        var apiPath1 = Path.GetFullPath(Path.Combine(currentDirectory, "../TechMart.Auth.Api"));
         if (Directory.Exists(apiPath1))
             return apiPath1;
 
         // Caso 2: Ejecutando desde raíz
-        var apiPath2 = Path.GetFullPath(Path.Combine(currentDirectory, "AuthMicroservice.API"));
+        var apiPath2 = Path.GetFullPath(Path.Combine(currentDirectory, "TechMart.Auth.Api"));
         if (Directory.Exists(apiPath2))
             return apiPath2;
 
@@ -95,7 +95,7 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
         var directory = new DirectoryInfo(currentDirectory);
         while (directory != null)
         {
-            var apiPath3 = Path.Combine(directory.FullName, "AuthMicroservice.API");
+            var apiPath3 = Path.Combine(directory.FullName, "TechMart.Auth.Api");
             if (Directory.Exists(apiPath3))
                 return apiPath3;
 
@@ -103,7 +103,7 @@ public class AuthDbContextFactory : IDesignTimeDbContextFactory<AuthDbContext>
         }
 
         throw new DirectoryNotFoundException(
-            "Could not find AuthMicroservice.API project directory"
+            "Could not find TechMart.Auth.Api project directory"
         );
     }
 

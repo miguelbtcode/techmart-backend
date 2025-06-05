@@ -2,11 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using AuthMicroservice.Application.Contracts.Jwt;
-using AuthMicroservice.Domain.Entities;
+using TechMart.Auth.Application.Contracts.Jwt;
+using TechMart.Auth.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AuthMicroservice.Infrastructure.Security;
+namespace TechMart.Auth.Infrastructure.Security;
 
 public class JwtService : IJwtService
 {

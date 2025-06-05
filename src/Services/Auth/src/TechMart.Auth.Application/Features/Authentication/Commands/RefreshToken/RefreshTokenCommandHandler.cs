@@ -1,11 +1,11 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Application.Contracts.Jwt;
-using AuthMicroservice.Application.Features.Authentication.Commands.Login;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Application.Contracts.Jwt;
+using TechMart.Auth.Application.Features.Authentication.Commands.Login;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.Authentication.Commands.RefreshToken;
+namespace TechMart.Auth.Application.Features.Authentication.Commands.RefreshToken;
 
 public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, Result<LoginResponse>>
 {
@@ -42,7 +42,7 @@ public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, Result<L
         await _refreshTokenRepository.RevokeTokenAsync(request.RefreshToken);
 
         // Create new refresh token
-        var newRefreshToken = new AuthMicroservice.Domain.Entities.RefreshToken
+        var newRefreshToken = new TechMart.Auth.Domain.Entities.RefreshToken
         {
             Token = newRefreshTokenValue,
             UserId = refreshToken.UserId,

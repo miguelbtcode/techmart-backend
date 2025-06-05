@@ -1,7 +1,7 @@
 using System.Security.Claims;
-using AuthMicroservice.Domain.Entities;
+using TechMart.Auth.Domain.Entities;
 
-namespace AuthMicroservice.Application.Contracts.Jwt;
+namespace TechMart.Auth.Application.Contracts.Jwt;
 
 public interface IJwtService
 {

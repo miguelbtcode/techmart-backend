@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Application.Features.EmailVerification.Events;
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Application.Features.EmailVerification.Events;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.EmailVerification.Commands.SendVerificationEmail;
+namespace TechMart.Auth.Application.Features.EmailVerification.Commands.SendVerificationEmail;
 
 public class SendVerificationEmailCommandHandler : IRequestHandler<SendVerificationEmailCommand, Result>
 {

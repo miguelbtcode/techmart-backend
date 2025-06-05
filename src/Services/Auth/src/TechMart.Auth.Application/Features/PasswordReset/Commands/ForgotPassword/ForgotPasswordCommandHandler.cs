@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Application.Features.PasswordReset.Commands.ResetPassword;
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Application.Features.PasswordReset.Commands.ResetPassword;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.PasswordReset.Commands.ForgotPassword;
+namespace TechMart.Auth.Application.Features.PasswordReset.Commands.ForgotPassword;
 
 public class ForgotPasswordHandler : IRequestHandler<ForgotPasswordCommand, Result>
 {

@@ -1,10 +1,10 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Features.PasswordReset.Commands.ForgotPassword;
-using AuthMicroservice.Application.Features.PasswordReset.Commands.ResetPassword;
+using TechMart.Auth.Application.Features.PasswordReset.Commands.ForgotPassword;
+using TechMart.Auth.Application.Features.PasswordReset.Commands.ResetPassword;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthMicroservice.API.Controllers;
+namespace TechMart.Auth.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]

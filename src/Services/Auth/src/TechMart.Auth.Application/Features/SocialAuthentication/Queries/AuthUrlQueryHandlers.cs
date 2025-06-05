@@ -1,7 +1,7 @@
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.SocialAuthentication.Queries;
+namespace TechMart.Auth.Application.Features.SocialAuthentication.Queries;
 
 public class GetGoogleAuthUrlHandler : IRequestHandler<GetGoogleAuthUrlQuery, string>
 {

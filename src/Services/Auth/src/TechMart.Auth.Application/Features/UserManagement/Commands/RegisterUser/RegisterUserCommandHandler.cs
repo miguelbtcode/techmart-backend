@@ -1,12 +1,12 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Events;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Events;
+using TechMart.Auth.Domain.Interfaces;
 using BCrypt.Net;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.UserManagement.Commands.RegisterUser;
+namespace TechMart.Auth.Application.Features.UserManagement.Commands.RegisterUser;
 
 public class RegisterHandler : IRequestHandler<RegisterCommand, Result<UserDto>>
 {

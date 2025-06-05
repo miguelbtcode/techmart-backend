@@ -1,4 +1,4 @@
-namespace AuthMicroservice.Application.Common.DTOs;
+namespace TechMart.Auth.Application.Common.DTOs;
 
 public class UserDto
 {

@@ -2,12 +2,12 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Asp.Versioning;
-using AuthMicroservice.Application;
-using AuthMicroservice.Infrastructure;
+using TechMart.Auth.Application;
+using TechMart.Auth.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
-namespace AuthMicroservice.API.Extensions;
+namespace TechMart.Auth.Api.Extensions;
 
 public static class ServiceCollectionExtensions
 {

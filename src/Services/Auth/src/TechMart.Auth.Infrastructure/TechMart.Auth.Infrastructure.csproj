@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\AuthMicroservice.Application\AuthMicroservice.Application.csproj" />
-    <ProjectReference Include="..\AuthMicroservice.Domain\AuthMicroservice.Domain.csproj" />
+    <ProjectReference Include="..\TechMart.Auth.Application\TechMart.Auth.Application.csproj" />
+    <ProjectReference Include="..\TechMart.Auth.Domain\TechMart.Auth.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.0" />

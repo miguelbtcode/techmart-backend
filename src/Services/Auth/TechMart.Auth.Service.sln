@@ -5,13 +5,15 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthMicroservice.Domain", "src\AuthMicroservice.Domain\AuthMicroservice.Domain.csproj", "{4BC3ACA1-03B7-4EE8-8E5A-A04451819E0E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Auth.Domain", "src\TechMart.Auth.Domain\TechMart.Auth.Domain.csproj", "{4BC3ACA1-03B7-4EE8-8E5A-A04451819E0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthMicroservice.Application", "src\AuthMicroservice.Application\AuthMicroservice.Application.csproj", "{0E801099-F104-45F1-9A44-E1D2543D7A0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Auth.Application", "src\TechMart.Auth.Application\TechMart.Auth.Application.csproj", "{0E801099-F104-45F1-9A44-E1D2543D7A0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthMicroservice.Infrastructure", "src\AuthMicroservice.Infrastructure\AuthMicroservice.Infrastructure.csproj", "{79101514-3613-40AD-898B-F33C0F114810}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Auth.Infrastructure", "src\TechMart.Auth.Infrastructure\TechMart.Auth.Infrastructure.csproj", "{79101514-3613-40AD-898B-F33C0F114810}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthMicroservice.API", "src\AuthMicroservice.API\AuthMicroservice.API.csproj", "{6677EF4F-0DF7-48BB-8169-BAD92C2F7B04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Auth.Api", "src\TechMart.Auth.Api\TechMart.Auth.Api.csproj", "{6677EF4F-0DF7-48BB-8169-BAD92C2F7B04}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{04CC3978-CD1B-449A-BDF6-F19FD11A8D69}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

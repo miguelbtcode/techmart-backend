@@ -1,10 +1,10 @@
 using System.Reflection;
-using AuthMicroservice.Application.Common.Behaviors;
+using TechMart.Auth.Application.Common.Behaviors;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AuthMicroservice.Application;
+namespace TechMart.Auth.Application;
 
 public static class DependencyInjection
 {

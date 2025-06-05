@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <ProjectReference Include="..\AuthMicroservice.Domain\AuthMicroservice.Domain.csproj" />
+    <ProjectReference Include="..\TechMart.Auth.Domain\TechMart.Auth.Domain.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />

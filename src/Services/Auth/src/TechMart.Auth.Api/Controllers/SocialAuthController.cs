@@ -1,11 +1,11 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Features.SocialAuthentication.Commands.GitHubLogin;
-using AuthMicroservice.Application.Features.SocialAuthentication.Commands.GoogleLogin;
-using AuthMicroservice.Application.Features.SocialAuthentication.Queries;
+using TechMart.Auth.Application.Features.SocialAuthentication.Commands.GitHubLogin;
+using TechMart.Auth.Application.Features.SocialAuthentication.Commands.GoogleLogin;
+using TechMart.Auth.Application.Features.SocialAuthentication.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthMicroservice.API.Controllers;
+namespace TechMart.Auth.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]

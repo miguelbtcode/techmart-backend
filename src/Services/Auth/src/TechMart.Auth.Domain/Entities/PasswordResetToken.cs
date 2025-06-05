@@ -1,4 +1,4 @@
-namespace AuthMicroservice.Domain.Entities;
+namespace TechMart.Auth.Domain.Entities;
 
 public class PasswordResetToken
 {

@@ -1,9 +1,9 @@
-using AuthMicroservice.Application.Features.EmailVerification.Commands.SendVerificationEmail;
-using AuthMicroservice.Domain.Events;
+using TechMart.Auth.Application.Features.EmailVerification.Commands.SendVerificationEmail;
+using TechMart.Auth.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace AuthMicroservice.Application.Features.UserManagement.Events;
+namespace TechMart.Auth.Application.Features.UserManagement.Events;
 
 public class UserRegisteredEventHandler : INotificationHandler<UserRegisteredEvent>
 {

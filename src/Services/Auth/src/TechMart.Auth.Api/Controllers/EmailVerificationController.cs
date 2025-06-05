@@ -1,11 +1,11 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Features.EmailVerification.Commands.SendVerificationEmail;
-using AuthMicroservice.Application.Features.EmailVerification.Commands.VerifyEmail;
+using TechMart.Auth.Application.Features.EmailVerification.Commands.SendVerificationEmail;
+using TechMart.Auth.Application.Features.EmailVerification.Commands.VerifyEmail;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthMicroservice.API.Controllers;
+namespace TechMart.Auth.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]

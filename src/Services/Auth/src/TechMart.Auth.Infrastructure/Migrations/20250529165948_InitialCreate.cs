@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AuthMicroservice.Infrastructure.Migrations
+namespace TechMart.Auth.Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

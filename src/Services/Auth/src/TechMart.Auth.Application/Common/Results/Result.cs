@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AuthMicroservice.Application.Common.Results;
+namespace TechMart.Auth.Application.Common.Results;
 
 public class Result
 {

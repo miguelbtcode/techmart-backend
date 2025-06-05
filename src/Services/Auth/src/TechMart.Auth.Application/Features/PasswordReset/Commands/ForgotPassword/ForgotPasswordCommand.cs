@@ -1,6 +1,6 @@
-using AuthMicroservice.Application.Common.Results;
+using TechMart.Auth.Application.Common.Results;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.PasswordReset.Commands.ForgotPassword;
+namespace TechMart.Auth.Application.Features.PasswordReset.Commands.ForgotPassword;
 
 public record ForgotPasswordCommand(string Email) : IRequest<Result>;

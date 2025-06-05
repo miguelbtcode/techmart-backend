@@ -1,7 +1,7 @@
 using System.Text.Json;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Interfaces;
 
-namespace AuthMicroservice.Infrastructure.ExternalServices;
+namespace TechMart.Auth.Infrastructure.ExternalServices;
 
 public class SocialAuthService : ISocialAuthService
 {

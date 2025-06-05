@@ -1,8 +1,8 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.Authentication.Commands.Login;
+namespace TechMart.Auth.Application.Features.Authentication.Commands.Login;
 
 public record LoginCommand(
     string EmailOrUsername,

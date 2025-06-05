@@ -1,6 +1,6 @@
-using AuthMicroservice.Application.Common.Results;
+using TechMart.Auth.Application.Common.Results;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.EmailVerification.Commands.SendVerificationEmail;
+namespace TechMart.Auth.Application.Features.EmailVerification.Commands.SendVerificationEmail;
 
 public record SendVerificationEmailCommand(int UserId) : IRequest<Result>;

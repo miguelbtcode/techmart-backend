@@ -1,8 +1,8 @@
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace AuthMicroservice.Application.Features.EmailVerification.Events;
+namespace TechMart.Auth.Application.Features.EmailVerification.Events;
 
 public class EmailVerificationRequestedEventHandler
     : INotificationHandler<EmailVerificationRequestedEvent>

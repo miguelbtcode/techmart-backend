@@ -1,4 +1,4 @@
-namespace AuthMicroservice.Domain.Interfaces;
+namespace TechMart.Auth.Domain.Interfaces;
 
 public record SocialUserInfo(
     string Id,

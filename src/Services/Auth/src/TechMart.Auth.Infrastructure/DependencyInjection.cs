@@ -1,11 +1,11 @@
 using System.Text;
-using AuthMicroservice.Application.Contracts.Jwt;
-using AuthMicroservice.Domain.Interfaces;
-using AuthMicroservice.Infrastructure.BackgroundJob;
-using AuthMicroservice.Infrastructure.Data;
-using AuthMicroservice.Infrastructure.Data.Repositories;
-using AuthMicroservice.Infrastructure.ExternalServices;
-using AuthMicroservice.Infrastructure.Security;
+using TechMart.Auth.Application.Contracts.Jwt;
+using TechMart.Auth.Domain.Interfaces;
+using TechMart.Auth.Infrastructure.BackgroundJob;
+using TechMart.Auth.Infrastructure.Data;
+using TechMart.Auth.Infrastructure.Data.Repositories;
+using TechMart.Auth.Infrastructure.ExternalServices;
+using TechMart.Auth.Infrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +16,7 @@ using Polly.Retry;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
-namespace AuthMicroservice.Infrastructure;
+namespace TechMart.Auth.Infrastructure;
 
 public static class DependencyInjection
 {

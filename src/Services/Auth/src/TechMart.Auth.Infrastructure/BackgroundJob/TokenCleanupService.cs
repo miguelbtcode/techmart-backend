@@ -1,9 +1,9 @@
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace AuthMicroservice.Infrastructure.BackgroundJob;
+namespace TechMart.Auth.Infrastructure.BackgroundJob;
 
 public class TokenCleanupService : BackgroundService
 {

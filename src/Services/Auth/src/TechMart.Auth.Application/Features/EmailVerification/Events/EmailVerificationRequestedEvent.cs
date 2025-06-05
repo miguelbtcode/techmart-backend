@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.EmailVerification.Events;
+namespace TechMart.Auth.Application.Features.EmailVerification.Events;
 
 public record EmailVerificationRequestedEvent(
     int UserId,

@@ -1,12 +1,12 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Features.Authentication.Commands.Login;
-using AuthMicroservice.Application.Features.Authentication.Commands.Logout;
-using AuthMicroservice.Application.Features.Authentication.Commands.RefreshToken;
-using AuthMicroservice.Application.Features.UserManagement.Commands.RegisterUser;
+using TechMart.Auth.Application.Features.Authentication.Commands.Login;
+using TechMart.Auth.Application.Features.Authentication.Commands.Logout;
+using TechMart.Auth.Application.Features.Authentication.Commands.RefreshToken;
+using TechMart.Auth.Application.Features.UserManagement.Commands.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthMicroservice.API.Controllers;
+namespace TechMart.Auth.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]

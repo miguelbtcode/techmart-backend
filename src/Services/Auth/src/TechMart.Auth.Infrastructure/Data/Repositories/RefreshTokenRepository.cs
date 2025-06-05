@@ -1,8 +1,8 @@
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthMicroservice.Infrastructure.Data.Repositories;
+namespace TechMart.Auth.Infrastructure.Data.Repositories;
 
 public class RefreshTokenRepository : IRefreshTokenRepository
 {

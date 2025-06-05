@@ -1,12 +1,12 @@
 using Asp.Versioning;
-using AuthMicroservice.Application.Features.UserManagement.Commands.ChangePassword;
-using AuthMicroservice.Application.Features.UserManagement.Commands.UpdateProfile;
-using AuthMicroservice.Application.Features.UserManagement.Queries.GetUserProfile;
+using TechMart.Auth.Application.Features.UserManagement.Commands.ChangePassword;
+using TechMart.Auth.Application.Features.UserManagement.Commands.UpdateProfile;
+using TechMart.Auth.Application.Features.UserManagement.Queries.GetUserProfile;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthMicroservice.API.Controllers;
+namespace TechMart.Auth.Api.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]

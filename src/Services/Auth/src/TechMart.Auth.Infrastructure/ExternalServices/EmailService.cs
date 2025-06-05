@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Mail;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace AuthMicroservice.Infrastructure.ExternalServices;
+namespace TechMart.Auth.Infrastructure.ExternalServices;
 
 public class EmailService : IEmailService
 {

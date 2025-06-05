@@ -16,7 +16,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="8.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AuthMicroservice.Application\AuthMicroservice.Application.csproj" />
-    <ProjectReference Include="..\AuthMicroservice.Infrastructure\AuthMicroservice.Infrastructure.csproj" />
+    <ProjectReference Include="..\TechMart.Auth.Application\TechMart.Auth.Application.csproj" />
+    <ProjectReference Include="..\TechMart.Auth.Infrastructure\TechMart.Auth.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

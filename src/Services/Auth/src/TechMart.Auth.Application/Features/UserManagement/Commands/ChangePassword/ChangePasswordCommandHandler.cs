@@ -1,8 +1,8 @@
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.UserManagement.Commands.ChangePassword;
+namespace TechMart.Auth.Application.Features.UserManagement.Commands.ChangePassword;
 
 public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Result>
 {

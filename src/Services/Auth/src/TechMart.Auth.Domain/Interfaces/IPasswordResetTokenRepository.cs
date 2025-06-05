@@ -1,6 +1,6 @@
-using AuthMicroservice.Domain.Entities;
+using TechMart.Auth.Domain.Entities;
 
-namespace AuthMicroservice.Domain.Interfaces;
+namespace TechMart.Auth.Domain.Interfaces;
 
 public interface IPasswordResetTokenRepository
 {

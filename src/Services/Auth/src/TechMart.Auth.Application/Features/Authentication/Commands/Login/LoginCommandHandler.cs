@@ -1,12 +1,12 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Application.Contracts.Jwt;
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Events;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Application.Contracts.Jwt;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Events;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.Authentication.Commands.Login;
+namespace TechMart.Auth.Application.Features.Authentication.Commands.Login;
 
 public class LoginHandler : IRequestHandler<LoginCommand, Result<LoginResponse>>
 {
@@ -65,7 +65,7 @@ public class LoginHandler : IRequestHandler<LoginCommand, Result<LoginResponse>>
         var refreshToken = _jwtService.GenerateRefreshToken();
 
         // Save refresh token
-        var refreshTokenEntity = new AuthMicroservice.Domain.Entities.RefreshToken
+        var refreshTokenEntity = new TechMart.Auth.Domain.Entities.RefreshToken
         {
             Token = refreshToken,
             UserId = user.Id,

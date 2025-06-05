@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 
-namespace AuthMicroservice.Application.Common.Behaviors;
+namespace TechMart.Auth.Application.Common.Behaviors;
 
 public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull

@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text.Json;
-using AuthMicroservice.Application.Common.Results;
+using TechMart.Auth.Application.Common.Results;
 using FluentValidation;
 
-namespace AuthMicroservice.API.Middlewares;
+namespace TechMart.Auth.Api.Middlewares;
 
 public class GlobalExceptionMiddleware
 {

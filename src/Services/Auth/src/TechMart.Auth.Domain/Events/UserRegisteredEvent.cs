@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace AuthMicroservice.Domain.Events;
+namespace TechMart.Auth.Domain.Events;
 
 public record UserRegisteredEvent(
     int UserId,

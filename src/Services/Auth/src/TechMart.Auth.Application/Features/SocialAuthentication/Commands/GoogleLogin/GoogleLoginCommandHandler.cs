@@ -1,15 +1,15 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Application.Contracts.Jwt;
-using AuthMicroservice.Application.Features.Authentication.Commands.Login;
-using AuthMicroservice.Application.Features.SocialAuthentication.Commands.GitHubLogin;
-using AuthMicroservice.Domain.Entities;
-using AuthMicroservice.Domain.Events;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Application.Contracts.Jwt;
+using TechMart.Auth.Application.Features.Authentication.Commands.Login;
+using TechMart.Auth.Application.Features.SocialAuthentication.Commands.GitHubLogin;
+using TechMart.Auth.Domain.Entities;
+using TechMart.Auth.Domain.Events;
+using TechMart.Auth.Domain.Interfaces;
 using BCrypt.Net;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.SocialAuthentication.Commands.GoogleLogin;
+namespace TechMart.Auth.Application.Features.SocialAuthentication.Commands.GoogleLogin;
 
 public class GitHubLoginHandler : IRequestHandler<GitHubLoginCommand, Result<LoginResponse>>
 {

@@ -2,7 +2,7 @@ using System.Diagnostics;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
-namespace AuthMicroservice.Application.Common.Behaviors;
+namespace TechMart.Auth.Application.Common.Behaviors;
 
 public class PerformanceBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull

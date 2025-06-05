@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace AuthMicroservice.Domain.Entities;
+namespace TechMart.Auth.Domain.Entities;
 
 public class User
 {

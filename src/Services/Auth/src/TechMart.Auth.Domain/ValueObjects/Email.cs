@@ -1,4 +1,4 @@
-namespace AuthMicroservice.Domain.ValueObjects;
+namespace TechMart.Auth.Domain.ValueObjects;
 
 public record Email
 {

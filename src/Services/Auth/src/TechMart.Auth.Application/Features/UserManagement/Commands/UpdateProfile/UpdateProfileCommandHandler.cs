@@ -1,9 +1,9 @@
-using AuthMicroservice.Application.Common.DTOs;
-using AuthMicroservice.Application.Common.Results;
-using AuthMicroservice.Domain.Interfaces;
+using TechMart.Auth.Application.Common.DTOs;
+using TechMart.Auth.Application.Common.Results;
+using TechMart.Auth.Domain.Interfaces;
 using MediatR;
 
-namespace AuthMicroservice.Application.Features.UserManagement.Commands.UpdateProfile;
+namespace TechMart.Auth.Application.Features.UserManagement.Commands.UpdateProfile;
 
 public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand, Result<UserDto>>
 {

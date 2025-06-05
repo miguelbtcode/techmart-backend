@@ -1,7 +1,7 @@
-using AuthMicroservice.Domain.Entities;
+using TechMart.Auth.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthMicroservice.Infrastructure.Data;
+namespace TechMart.Auth.Infrastructure.Data;
 
 public class AuthDbContext : DbContext
 {

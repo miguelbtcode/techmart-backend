@@ -1,6 +1,6 @@
-using AuthMicroservice.API.Extensions;
-using AuthMicroservice.API.Middlewares;
-using AuthMicroservice.Infrastructure.Data;
+using TechMart.Auth.Api.Extensions;
+using TechMart.Auth.Api.Middlewares;
+using TechMart.Auth.Infrastructure.Data;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Serilog;
 

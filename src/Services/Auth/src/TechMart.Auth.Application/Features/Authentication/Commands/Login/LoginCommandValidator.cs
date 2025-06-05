@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace AuthMicroservice.Application.Features.Authentication.Commands.Login;
+namespace TechMart.Auth.Application.Features.Authentication.Commands.Login;
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
