@@ -1,14 +1,14 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Category;
 using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProductsByCategory;
 
-public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCategoryQuery, Result<PaginatedResponseDto<ProductDto>>>
+public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCategoryQuery, Result<PaginatedResponseVm<ProductVm>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly ICategoryRepository _categoryRepository;
@@ -27,7 +27,7 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponseVm<ProductVm>>> Handle(GetProductsByCategoryQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,7 +35,7 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
             var category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
             if (category == null)
             {
-                return Result.Failure<PaginatedResponseDto<ProductDto>>(
+                return Result.Failure<PaginatedResponseVm<ProductVm>>(
                     Error.NotFound("Category.NotFound", $"Category with ID '{request.CategoryId}' not found"));
             }
 
@@ -51,7 +51,7 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
                 cancellationToken);
 
             // Map to DTOs
-            var productDtos = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
+            var productDtos = _mapper.Map<List<ProductVm>>(pagedProducts.Items);
 
             // Set category name for all products
             foreach (var productDto in productDtos)
@@ -59,7 +59,7 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
                 productDto.CategoryName = category.Name;
             }
 
-            var response = new PaginatedResponseDto<ProductDto>
+            var response = new PaginatedResponseVm<ProductVm>
             {
                 Items = productDtos,
                 PageNumber = pagedProducts.PageNumber,
@@ -78,7 +78,7 @@ public class GetProductsByCategoryQueryHandler : IRequestHandler<GetProductsByCa
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting products for category: {CategoryId}", request.CategoryId);
-            return Result.Failure<PaginatedResponseDto<ProductDto>>(
+            return Result.Failure<PaginatedResponseVm<ProductVm>>(
                 Error.Failure("Products.GetByCategoryFailed", "Failed to retrieve products by category"));
         }
     }

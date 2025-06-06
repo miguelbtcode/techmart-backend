@@ -1,5 +1,5 @@
 using AutoMapper;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product.Entities;
 
 namespace TechMart.Product.Application.Common.Mappings;
@@ -8,7 +8,7 @@ public class ProductMappingProfile : Profile
 {
     public ProductMappingProfile()
     {
-        CreateMap<Domain.Product.Product, ProductDto>()
+        CreateMap<Domain.Product.Product, ProductVm>()
             .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku.Value))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.Amount))
             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Price.Currency))
@@ -22,14 +22,14 @@ public class ProductMappingProfile : Profile
             .ForMember(dest => dest.IsOnSale, opt => opt.MapFrom(src => src.IsOnSale))
             .ForMember(dest => dest.DiscountPercentage, opt => opt.MapFrom(src => src.DiscountPercentage));
 
-        CreateMap<ProductImage, ProductImageDto>()
+        CreateMap<ProductImage, ProductImageVm>()
             .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl.Value));
 
-        CreateMap<ProductVariant, ProductVariantDto>()
+        CreateMap<ProductVariant, ProductVariantVm>()
             .ForMember(dest => dest.Sku, opt => opt.MapFrom(src => src.Sku.Value))
             .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price.Amount))
             .ForMember(dest => dest.CompareAtPrice, opt => opt.MapFrom(src => src.CompareAtPrice != null ? src.CompareAtPrice.Amount : (decimal?)null));
 
-        CreateMap<ProductAttribute, ProductAttributeDto>();
+        CreateMap<ProductAttribute, ProductAttributeVm>();
     }
 }

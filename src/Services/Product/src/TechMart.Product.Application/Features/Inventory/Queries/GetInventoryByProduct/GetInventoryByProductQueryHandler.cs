@@ -1,13 +1,13 @@
 using AutoMapper;
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Inventory.Vms;
 using TechMart.Product.Domain.Inventory;
 using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Inventory.Queries.GetInventoryByProduct;
 
-public class GetInventoryByProductQueryHandler : IRequestHandler<GetInventoryByProductQuery, Result<InventoryDto>>
+public class GetInventoryByProductQueryHandler : IRequestHandler<GetInventoryByProductQuery, Result<InventoryVm>>
 {
     private readonly IInventoryRepository _inventoryRepository;
     private readonly IProductRepository _productRepository;
@@ -23,13 +23,13 @@ public class GetInventoryByProductQueryHandler : IRequestHandler<GetInventoryByP
         _mapper = mapper;
     }
 
-    public async Task<Result<InventoryDto>> Handle(GetInventoryByProductQuery request, CancellationToken cancellationToken)
+    public async Task<Result<InventoryVm>> Handle(GetInventoryByProductQuery request, CancellationToken cancellationToken)
     {
         // Verify product exists
         var product = await _productRepository.GetByIdAsync(request.ProductId, cancellationToken);
         if (product == null)
         {
-            return Result.Failure<InventoryDto>(Error.NotFound("Product.NotFound", 
+            return Result.Failure<InventoryVm>(Error.NotFound("Product.NotFound", 
                 $"Product with ID '{request.ProductId}' not found"));
         }
 
@@ -37,11 +37,11 @@ public class GetInventoryByProductQueryHandler : IRequestHandler<GetInventoryByP
         var inventory = await _inventoryRepository.GetByProductIdAsync(request.ProductId, cancellationToken);
         if (inventory == null)
         {
-            return Result.Failure<InventoryDto>(Error.NotFound("Inventory.NotFound", 
+            return Result.Failure<InventoryVm>(Error.NotFound("Inventory.NotFound", 
                 $"Inventory for product '{request.ProductId}' not found"));
         }
 
-        var inventoryDto = _mapper.Map<InventoryDto>(inventory);
+        var inventoryDto = _mapper.Map<InventoryVm>(inventory);
         
         return Result.Success(inventoryDto);
     }

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TechMart.Product.Infrastructure.Data.EntityFramework;
+using TechMart.Product.Infrastructure.Data;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;

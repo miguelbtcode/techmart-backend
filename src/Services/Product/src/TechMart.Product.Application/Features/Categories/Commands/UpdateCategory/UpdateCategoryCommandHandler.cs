@@ -1,13 +1,13 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Categories.Vms;
 using TechMart.Product.Domain.Category;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Categories.Commands.UpdateCategory;
 
-public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryDto>>
+public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryCommand, Result<CategoryVm>>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
@@ -23,7 +23,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         _logger = logger;
     }
 
-    public async Task<Result<CategoryDto>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CategoryVm>> Handle(UpdateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -31,7 +31,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
             var category = await _categoryRepository.GetByIdAsync(request.Id, cancellationToken);
             if (category == null)
             {
-                return Result.Failure<CategoryDto>(Error.NotFound("Category.NotFound", 
+                return Result.Failure<CategoryVm>(Error.NotFound("Category.NotFound", 
                     $"Category with ID '{request.Id}' not found"));
             }
 
@@ -42,14 +42,14 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
                 var parentCategory = await _categoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken);
                 if (parentCategory == null)
                 {
-                    return Result.Failure<CategoryDto>(Error.NotFound("Category.ParentNotFound", 
+                    return Result.Failure<CategoryVm>(Error.NotFound("Category.ParentNotFound", 
                         $"Parent category with ID '{request.ParentCategoryId}' not found"));
                 }
 
                 // Prevent circular reference - category cannot be its own parent or grandparent
                 if (request.ParentCategoryId == request.Id)
                 {
-                    return Result.Failure<CategoryDto>(Error.Validation("Category.CircularReference", 
+                    return Result.Failure<CategoryVm>(Error.Validation("Category.CircularReference", 
                         "Category cannot be its own parent"));
                 }
 
@@ -57,7 +57,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
                 var hierarchy = await _categoryRepository.GetHierarchyAsync(request.ParentCategoryId.Value, cancellationToken);
                 if (hierarchy.Any(c => c.Id == request.Id))
                 {
-                    return Result.Failure<CategoryDto>(Error.Validation("Category.CircularReference", 
+                    return Result.Failure<CategoryVm>(Error.Validation("Category.CircularReference", 
                         "Category cannot be moved to one of its child categories"));
                 }
             }
@@ -78,14 +78,14 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
             _logger.LogInformation("Category updated successfully: {CategoryId}", request.Id);
 
             // Map to DTO and return
-            var categoryDto = _mapper.Map<CategoryDto>(category);
+            var categoryDto = _mapper.Map<CategoryVm>(category);
 
             return Result.Success(categoryDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating category: {CategoryId}", request.Id);
-            return Result.Failure<CategoryDto>(Error.Failure("Category.UpdateFailed", "Failed to update category"));
+            return Result.Failure<CategoryVm>(Error.Failure("Category.UpdateFailed", "Failed to update category"));
         }
     }
 }

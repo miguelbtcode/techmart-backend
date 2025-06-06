@@ -2,7 +2,7 @@ using System.Reflection;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using TechMart.Product.Application.Common.Behaviors;
+using TechMart.Product.Application.Abstractions.Behaviors;
 
 namespace TechMart.Product.Application;
 
@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(assembly);
         
         // Pipeline Behavior
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
         
         // AutoMapper

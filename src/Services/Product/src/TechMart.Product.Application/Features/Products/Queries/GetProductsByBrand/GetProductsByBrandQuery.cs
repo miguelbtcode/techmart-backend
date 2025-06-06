@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProductsByBrand;
@@ -11,4 +11,4 @@ public record GetProductsByBrandQuery(
     bool IncludeInactive = false,
     string? SortBy = null,
     bool SortDescending = false
-) : IRequest<Result<PaginatedResponseDto<ProductDto>>>;
+) : IRequest<Result<PaginatedResponseVm<ProductVm>>>;

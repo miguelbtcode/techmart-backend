@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using TechMart.Product.Application;
 using TechMart.Product.Infrastructure;
-using TechMart.Product.Infrastructure.Data.EntityFramework;
-using TechMart.Product.Infrastructure.Data.EntityFramework.Seeders;
+using TechMart.Product.Infrastructure.Data;
+using TechMart.Product.Infrastructure.Data.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
 

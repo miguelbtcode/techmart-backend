@@ -1,37 +1,27 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Brands.Vms;
 using TechMart.Product.Domain.Brand;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Brands.Commands.CreateBrand;
 
-public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Result<BrandDto>>
+public class CreateBrandCommandHandler(
+    IBrandRepository brandRepository,
+    IMapper mapper,
+    ILogger<CreateBrandCommandHandler> logger)
+    : IRequestHandler<CreateBrandCommand, Result<BrandVm>>
 {
-    private readonly IBrandRepository _brandRepository;
-    private readonly IMapper _mapper;
-    private readonly ILogger<CreateBrandCommandHandler> _logger;
-
-    public CreateBrandCommandHandler(
-        IBrandRepository brandRepository,
-        IMapper mapper,
-        ILogger<CreateBrandCommandHandler> logger)
-    {
-        _brandRepository = brandRepository;
-        _mapper = mapper;
-        _logger = logger;
-    }
-
-    public async Task<Result<BrandDto>> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
+    public async Task<Result<BrandVm>> Handle(CreateBrandCommand request, CancellationToken cancellationToken)
     {
         try
         {
             // Check if brand name already exists
-            var nameExists = await _brandRepository.NameExistsAsync(request.Name, null, cancellationToken);
+            var nameExists = await brandRepository.NameExistsAsync(request.Name, null, cancellationToken);
             if (nameExists)
             {
-                return Result.Failure<BrandDto>(Error.Conflict("Brand.NameExists", 
+                return Result.Failure<BrandVm>(Error.Conflict("Brand.NameExists", 
                     $"A brand with name '{request.Name}' already exists"));
             }
 
@@ -50,20 +40,20 @@ public class CreateBrandCommandHandler : IRequestHandler<CreateBrandCommand, Res
             }
 
             // Save brand
-            await _brandRepository.AddAsync(brand, cancellationToken);
+            await brandRepository.AddAsync(brand, cancellationToken);
 
-            _logger.LogInformation("Brand created successfully: {BrandId} - {BrandName}", 
+            logger.LogInformation("Brand created successfully: {BrandId} - {BrandName}", 
                 brand.Id, brand.Name);
 
             // Map to DTO and return
-            var brandDto = _mapper.Map<BrandDto>(brand);
+            var brandDto = mapper.Map<BrandVm>(brand);
 
             return Result.Success(brandDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating brand: {BrandName}", request.Name);
-            return Result.Failure<BrandDto>(Error.Failure("Brand.CreateFailed", "Failed to create brand"));
+            logger.LogError(ex, "Error creating brand: {BrandName}", request.Name);
+            return Result.Failure<BrandVm>(Error.Failure("Brand.CreateFailed", "Failed to create brand"));
         }
     }
 }

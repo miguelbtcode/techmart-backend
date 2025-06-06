@@ -2,14 +2,14 @@ using System.Linq.Expressions;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 using ProductEntity = TechMart.Product.Domain.Product.Product;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProducts;
 
-public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<PaginatedResponseDto<ProductDto>>>
+public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<PaginatedResponseVm<ProductVm>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
@@ -25,7 +25,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponseVm<ProductVm>>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -42,10 +42,10 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
                 cancellationToken);
 
             // Map to DTOs
-            var productDtos = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
+            var productDtos = _mapper.Map<List<ProductVm>>(pagedProducts.Items);
 
             // Create paginated response
-            var response = new PaginatedResponseDto<ProductDto>
+            var response = new PaginatedResponseVm<ProductVm>
             {
                 Items = productDtos,
                 PageNumber = pagedProducts.PageNumber,
@@ -63,7 +63,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, Result<
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting products with filters: {@Filters}", request);
-            return Result.Failure<PaginatedResponseDto<ProductDto>>(
+            return Result.Failure<PaginatedResponseVm<ProductVm>>(
                 Error.Failure("Products.GetFailed", "Failed to retrieve products"));
         }
     }

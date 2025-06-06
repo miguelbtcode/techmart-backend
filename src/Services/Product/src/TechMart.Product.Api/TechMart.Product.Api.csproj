@@ -22,12 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
-        <Link>.dockerignore</Link>
-      </Content>
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\TechMart.Product.Application\TechMart.Product.Application.csproj" />
       <ProjectReference Include="..\TechMart.Product.Infrastructure\TechMart.Product.Infrastructure.csproj" />
     </ItemGroup>

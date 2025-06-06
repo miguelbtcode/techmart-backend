@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Brands.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Brands.Commands.CreateBrand;
@@ -9,4 +9,4 @@ public record CreateBrandCommand(
     string? Description = null,
     string? LogoUrl = null,
     string? WebsiteUrl = null
-) : IRequest<Result<BrandDto>>;
+) : IRequest<Result<BrandVm>>;

@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TechMart.Product.Application.Common.DTOs;
 using TechMart.Product.Application.Features.Products.Commands.BulkUpdateProducts;
 using TechMart.Product.Application.Features.Products.Commands.CreateProduct;
 using TechMart.Product.Application.Features.Products.Commands.DeleteProduct;
@@ -12,6 +11,7 @@ using TechMart.Product.Application.Features.Products.Queries.GetProducts;
 using TechMart.Product.Application.Features.Products.Queries.GetProductsByBrand;
 using TechMart.Product.Application.Features.Products.Queries.GetProductsByCategory;
 using TechMart.Product.Application.Features.Products.Queries.SearchProducts;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product.Enums;
 using TechMart.SharedKernel.Common;
 
@@ -46,9 +46,9 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of products</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<ProductDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
-    public async Task<ActionResult<ApiResponse<PaginatedResponseDto<ProductDto>>>> GetProducts(
+    public async Task<ActionResult<ApiResponse<PaginatedResponseVm<ProductVm>>>> GetProducts(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
         [FromQuery] ProductStatus? status = null,
@@ -69,7 +69,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseDto<ProductDto>>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
             : BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 
@@ -80,9 +80,9 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Product details</returns>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<ProductDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<ProductVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<ProductDto>>> GetProduct(
+    public async Task<ActionResult<ApiResponse<ProductVm>>> GetProduct(
         Guid id, 
         CancellationToken cancellationToken = default)
     {
@@ -90,7 +90,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<ProductDto>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<ProductVm>.SuccessResponse(result.Value))
             : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 
@@ -102,10 +102,10 @@ public class ProductsController : ControllerBase
     /// <returns>Created product</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,ProductManager")]
-    [ProducesResponseType(typeof(ApiResponse<ProductDto>), 201)]
+    [ProducesResponseType(typeof(ApiResponse<ProductVm>), 201)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 409)]
-    public async Task<ActionResult<ApiResponse<ProductDto>>> CreateProduct(
+    public async Task<ActionResult<ApiResponse<ProductVm>>> CreateProduct(
         [FromBody] CreateProductCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -116,7 +116,7 @@ public class ProductsController : ControllerBase
             return CreatedAtAction(
                 nameof(GetProduct), 
                 new { id = result.Value.Id }, 
-                ApiResponse<ProductDto>.SuccessResponse(result.Value, "Product created successfully"));
+                ApiResponse<ProductVm>.SuccessResponse(result.Value, "Product created successfully"));
         }
 
         return result.Error.Type switch
@@ -136,10 +136,10 @@ public class ProductsController : ControllerBase
     /// <returns>Updated product</returns>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin,ProductManager")]
-    [ProducesResponseType(typeof(ApiResponse<ProductDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<ProductVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<ProductDto>>> UpdateProduct(
+    public async Task<ActionResult<ApiResponse<ProductVm>>> UpdateProduct(
         Guid id,
         [FromBody] UpdateProductCommand command,
         CancellationToken cancellationToken = default)
@@ -152,7 +152,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<ProductDto>.SuccessResponse(result.Value, "Product updated successfully"))
+            ? Ok(ApiResponse<ProductVm>.SuccessResponse(result.Value, "Product updated successfully"))
             : result.Error.Type switch
             {
                 ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
@@ -247,9 +247,9 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Search results</returns>
     [HttpGet("search")]
-    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<ProductDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
-    public async Task<ActionResult<ApiResponse<PaginatedResponseDto<ProductDto>>>> SearchProducts(
+    public async Task<ActionResult<ApiResponse<PaginatedResponseVm<ProductVm>>>> SearchProducts(
         [FromQuery] string searchTerm,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -266,7 +266,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseDto<ProductDto>>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
             : BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 
@@ -282,9 +282,9 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Products in category</returns>
     [HttpGet("category/{categoryId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<ProductDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<PaginatedResponseDto<ProductDto>>>> GetProductsByCategory(
+    public async Task<ActionResult<ApiResponse<PaginatedResponseVm<ProductVm>>>> GetProductsByCategory(
         Guid categoryId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -299,7 +299,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseDto<ProductDto>>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
             : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 
@@ -315,9 +315,9 @@ public class ProductsController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Products by brand</returns>
     [HttpGet("brand/{brandId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseDto<ProductDto>>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<PaginatedResponseDto<ProductDto>>>> GetProductsByBrand(
+    public async Task<ActionResult<ApiResponse<PaginatedResponseVm<ProductVm>>>> GetProductsByBrand(
         Guid brandId,
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 10,
@@ -332,7 +332,7 @@ public class ProductsController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseDto<ProductDto>>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
             : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 }

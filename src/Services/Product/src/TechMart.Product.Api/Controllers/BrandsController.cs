@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TechMart.Product.Application.Common.DTOs;
 using TechMart.Product.Application.Features.Brands.Commands.CreateBrand;
+using TechMart.Product.Application.Features.Brands.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
@@ -27,10 +27,10 @@ public class BrandsController : ControllerBase
     /// <returns>Created brand</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,BrandManager")]
-    [ProducesResponseType(typeof(ApiResponse<BrandDto>), 201)]
+    [ProducesResponseType(typeof(ApiResponse<BrandVm>), 201)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 409)]
-    public async Task<ActionResult<ApiResponse<BrandDto>>> CreateBrand(
+    public async Task<ActionResult<ApiResponse<BrandVm>>> CreateBrand(
         [FromBody] CreateBrandCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -41,7 +41,7 @@ public class BrandsController : ControllerBase
             return CreatedAtAction(
                 "GetBrand", // This would need to be implemented
                 new { id = result.Value.Id }, 
-                ApiResponse<BrandDto>.SuccessResponse(result.Value, "Brand created successfully"));
+                ApiResponse<BrandVm>.SuccessResponse(result.Value, "Brand created successfully"));
         }
 
         return result.Error.Type switch

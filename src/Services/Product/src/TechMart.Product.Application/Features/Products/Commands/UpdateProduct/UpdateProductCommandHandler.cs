@@ -1,7 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Category;
 using TechMart.Product.Domain.Product;
@@ -10,7 +10,7 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Commands.UpdateProduct;
 
-public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<ProductDto>>
+public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<ProductVm>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IBrandRepository _brandRepository;
@@ -32,7 +32,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         _logger = logger;
     }
 
-    public async Task<Result<ProductDto>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ProductVm>> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -40,21 +40,21 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             var product = await _productRepository.GetByIdAsync(request.Id, cancellationToken);
             if (product == null)
             {
-                return Result.Failure<ProductDto>(Error.NotFound("Product.NotFound", $"Product with ID '{request.Id}' not found"));
+                return Result.Failure<ProductVm>(Error.NotFound("Product.NotFound", $"Product with ID '{request.Id}' not found"));
             }
 
             // Validate brand exists
             var brand = await _brandRepository.GetByIdAsync(request.BrandId, cancellationToken);
             if (brand == null)
             {
-                return Result.Failure<ProductDto>(Error.NotFound("Brand.NotFound", $"Brand with ID '{request.BrandId}' not found"));
+                return Result.Failure<ProductVm>(Error.NotFound("Brand.NotFound", $"Brand with ID '{request.BrandId}' not found"));
             }
 
             // Validate category exists
             var category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
             if (category == null)
             {
-                return Result.Failure<ProductDto>(Error.NotFound("Category.NotFound", $"Category with ID '{request.CategoryId}' not found"));
+                return Result.Failure<ProductVm>(Error.NotFound("Category.NotFound", $"Category with ID '{request.CategoryId}' not found"));
             }
 
             // Update basic info
@@ -96,7 +96,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
             _logger.LogInformation("Product updated successfully: {ProductId}", request.Id);
 
             // Map to DTO and return
-            var productDto = _mapper.Map<ProductDto>(product);
+            var productDto = _mapper.Map<ProductVm>(product);
             productDto.BrandName = brand.Name;
             productDto.CategoryName = category.Name;
 
@@ -105,7 +105,7 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating product: {ProductId}", request.Id);
-            return Result.Failure<ProductDto>(Error.Failure("Product.UpdateFailed", "Failed to update product"));
+            return Result.Failure<ProductVm>(Error.Failure("Product.UpdateFailed", "Failed to update product"));
         }
     }
 }

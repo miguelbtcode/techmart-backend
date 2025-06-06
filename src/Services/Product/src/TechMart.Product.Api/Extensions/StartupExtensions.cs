@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Threading.RateLimiting;
 using Asp.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
-using TechMart.Product.Infrastructure.Data.EntityFramework;
+using TechMart.Product.Infrastructure.Data;
 
 namespace TechMart.Product.Api.Extensions;
 

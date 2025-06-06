@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using TechMart.Product.Application.Common.DTOs;
 using TechMart.Product.Application.Features.Inventory.Commands.ReserveStock;
 using TechMart.Product.Application.Features.Inventory.Commands.UpdateStock;
 using TechMart.Product.Application.Features.Inventory.Queries.GetInventoryByProduct;
+using TechMart.Product.Application.Features.Inventory.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
@@ -30,9 +30,9 @@ public class InventoryController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Product inventory details</returns>
     [HttpGet("product/{productId:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<InventoryDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<InventoryVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<InventoryDto>>> GetInventoryByProduct(
+    public async Task<ActionResult<ApiResponse<InventoryVm>>> GetInventoryByProduct(
         Guid productId,
         CancellationToken cancellationToken = default)
     {
@@ -40,7 +40,7 @@ public class InventoryController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<InventoryDto>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<InventoryVm>.SuccessResponse(result.Value))
             : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 

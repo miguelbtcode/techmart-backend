@@ -1,13 +1,13 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Categories.Vms;
 using TechMart.Product.Domain.Category;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Categories.Commands.CreateCategory;
 
-public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryDto>>
+public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryCommand, Result<CategoryVm>>
 {
     private readonly ICategoryRepository _categoryRepository;
     private readonly IMapper _mapper;
@@ -23,7 +23,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         _logger = logger;
     }
 
-    public async Task<Result<CategoryDto>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CategoryVm>> Handle(CreateCategoryCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -33,7 +33,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
                 var parentCategory = await _categoryRepository.GetByIdAsync(request.ParentCategoryId.Value, cancellationToken);
                 if (parentCategory == null)
                 {
-                    return Result.Failure<CategoryDto>(Error.NotFound("Category.ParentNotFound", 
+                    return Result.Failure<CategoryVm>(Error.NotFound("Category.ParentNotFound", 
                         $"Parent category with ID '{request.ParentCategoryId}' not found"));
                 }
             }
@@ -55,14 +55,14 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
                 category.Id, category.Name);
 
             // Map to DTO and return
-            var categoryDto = _mapper.Map<CategoryDto>(category);
+            var categoryDto = _mapper.Map<CategoryVm>(category);
 
             return Result.Success(categoryDto);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating category: {CategoryName}", request.Name);
-            return Result.Failure<CategoryDto>(Error.Failure("Category.CreateFailed", "Failed to create category"));
+            return Result.Failure<CategoryVm>(Error.Failure("Category.CreateFailed", "Failed to create category"));
         }
     }
 }

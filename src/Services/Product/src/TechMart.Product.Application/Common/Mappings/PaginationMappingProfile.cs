@@ -1,5 +1,5 @@
 using AutoMapper;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Common.Mappings;
@@ -8,7 +8,7 @@ public class PaginationMappingProfile : Profile
 {
     public PaginationMappingProfile()
     {
-        CreateMap(typeof(PagedList<>), typeof(PaginatedResponseDto<>))
+        CreateMap(typeof(PagedList<>), typeof(PaginatedResponseVm<>))
             .ForMember("Items", opt => opt.MapFrom("Items"))
             .ForMember("PageNumber", opt => opt.MapFrom("PageNumber"))
             .ForMember("PageSize", opt => opt.MapFrom("PageSize"))

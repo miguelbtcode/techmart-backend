@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product.Enums;
 using TechMart.SharedKernel.Common;
 
@@ -19,4 +19,4 @@ public record CreateProductCommand(
     decimal? Weight = null,
     string? WeightUnit = null,
     string? Tags = null
-) : IRequest<Result<ProductDto>>;
+) : IRequest<Result<ProductVm>>;

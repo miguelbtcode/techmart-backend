@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Commands.UpdateProduct;
@@ -17,4 +17,4 @@ public record UpdateProductCommand(
     decimal? Weight = null,
     string? WeightUnit = null,
     string? Tags = null
-) : IRequest<Result<ProductDto>>;
+) : IRequest<Result<ProductVm>>;

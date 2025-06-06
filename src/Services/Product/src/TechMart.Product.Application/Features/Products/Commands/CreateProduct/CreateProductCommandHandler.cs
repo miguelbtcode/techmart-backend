@@ -1,7 +1,7 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Category;
 using TechMart.Product.Domain.Product;
@@ -11,7 +11,7 @@ using ProductEntity = TechMart.Product.Domain.Product.Product;
 
 namespace TechMart.Product.Application.Features.Products.Commands.CreateProduct;
 
-public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<ProductDto>>
+public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<ProductVm>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IBrandRepository _brandRepository;
@@ -33,7 +33,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         _logger = logger;
     }
 
-    public async Task<Result<ProductDto>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task<Result<ProductVm>> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -41,21 +41,21 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             var skuExists = await _productRepository.SkuExistsAsync(request.Sku, cancellationToken: cancellationToken);
             if (skuExists)
             {
-                return Result.Failure<ProductDto>(Error.Conflict("Product.SkuExists", $"A product with SKU '{request.Sku}' already exists"));
+                return Result.Failure<ProductVm>(Error.Conflict("Product.SkuExists", $"A product with SKU '{request.Sku}' already exists"));
             }
 
             // Validate brand exists
             var brand = await _brandRepository.GetByIdAsync(request.BrandId, cancellationToken);
             if (brand == null)
             {
-                return Result.Failure<ProductDto>(Error.NotFound("Brand.NotFound", $"Brand with ID '{request.BrandId}' not found"));
+                return Result.Failure<ProductVm>(Error.NotFound("Brand.NotFound", $"Brand with ID '{request.BrandId}' not found"));
             }
 
             // Validate category exists
             var category = await _categoryRepository.GetByIdAsync(request.CategoryId, cancellationToken);
             if (category == null)
             {
-                return Result.Failure<ProductDto>(Error.NotFound("Category.NotFound", $"Category with ID '{request.CategoryId}' not found"));
+                return Result.Failure<ProductVm>(Error.NotFound("Category.NotFound", $"Category with ID '{request.CategoryId}' not found"));
             }
 
             // Create price value object
@@ -109,7 +109,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             _logger.LogInformation("Product created successfully with SKU: {Sku}", request.Sku);
 
             // Map to DTO and return
-            var productDto = _mapper.Map<ProductDto>(product);
+            var productDto = _mapper.Map<ProductVm>(product);
             productDto.BrandName = brand.Name;
             productDto.CategoryName = category.Name;
 
@@ -118,7 +118,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating product with SKU: {Sku}", request.Sku);
-            return Result.Failure<ProductDto>(Error.Failure("Product.CreateFailed", "Failed to create product"));
+            return Result.Failure<ProductVm>(Error.Failure("Product.CreateFailed", "Failed to create product"));
         }
     }
 }

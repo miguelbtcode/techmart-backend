@@ -2,13 +2,13 @@ using System.Linq.Expressions;
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.SearchProducts;
 
-public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Result<PaginatedResponseDto<ProductDto>>>
+public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Result<PaginatedResponseVm<ProductVm>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IMapper _mapper;
@@ -24,13 +24,13 @@ public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, R
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(SearchProductsQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponseVm<ProductVm>>> Handle(SearchProductsQuery request, CancellationToken cancellationToken)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(request.SearchTerm))
             {
-                return Result.Failure<PaginatedResponseDto<ProductDto>>(
+                return Result.Failure<PaginatedResponseVm<ProductVm>>(
                     Error.Validation("Search.EmptyTerm", "Search term cannot be empty"));
             }
 
@@ -47,9 +47,9 @@ public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, R
                 cancellationToken);
 
             // Map to DTOs
-            var productDtos = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
+            var productDtos = _mapper.Map<List<ProductVm>>(pagedProducts.Items);
 
-            var response = new PaginatedResponseDto<ProductDto>
+            var response = new PaginatedResponseVm<ProductVm>
             {
                 Items = productDtos,
                 PageNumber = pagedProducts.PageNumber,
@@ -68,7 +68,7 @@ public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, R
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error searching products with term: {SearchTerm}", request.SearchTerm);
-            return Result.Failure<PaginatedResponseDto<ProductDto>>(
+            return Result.Failure<PaginatedResponseVm<ProductVm>>(
                 Error.Failure("Products.SearchFailed", "Failed to search products"));
         }
     }

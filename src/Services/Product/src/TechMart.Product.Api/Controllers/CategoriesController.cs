@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TechMart.Product.Application.Common.DTOs;
 using TechMart.Product.Application.Features.Categories.Commands.CreateCategory;
 using TechMart.Product.Application.Features.Categories.Commands.UpdateCategory;
 using TechMart.Product.Application.Features.Categories.Queries.GetCategories;
 using TechMart.Product.Application.Features.Categories.Queries.GetCategory;
+using TechMart.Product.Application.Features.Categories.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
@@ -31,8 +31,8 @@ public class CategoriesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of categories</returns>
     [HttpGet]
-    [ProducesResponseType(typeof(ApiResponse<List<CategoryDto>>), 200)]
-    public async Task<ActionResult<ApiResponse<List<CategoryDto>>>> GetCategories(
+    [ProducesResponseType(typeof(ApiResponse<List<CategoryVm>>), 200)]
+    public async Task<ActionResult<ApiResponse<List<CategoryVm>>>> GetCategories(
         [FromQuery] Guid? parentCategoryId = null,
         [FromQuery] bool includeInactive = false,
         [FromQuery] bool includeProductCount = true,
@@ -41,7 +41,7 @@ public class CategoriesController : ControllerBase
         var query = new GetCategoriesQuery(parentCategoryId, includeInactive, includeProductCount);
         var result = await _mediator.Send(query, cancellationToken);
 
-        return Ok(ApiResponse<List<CategoryDto>>.SuccessResponse(result.Value));
+        return Ok(ApiResponse<List<CategoryVm>>.SuccessResponse(result.Value));
     }
 
     /// <summary>
@@ -51,9 +51,9 @@ public class CategoriesController : ControllerBase
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Category details</returns>
     [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<CategoryDto>>> GetCategory(
+    public async Task<ActionResult<ApiResponse<CategoryVm>>> GetCategory(
         Guid id,
         CancellationToken cancellationToken = default)
     {
@@ -61,7 +61,7 @@ public class CategoriesController : ControllerBase
         var result = await _mediator.Send(query, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<CategoryDto>.SuccessResponse(result.Value))
+            ? Ok(ApiResponse<CategoryVm>.SuccessResponse(result.Value))
             : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
     }
 
@@ -73,9 +73,9 @@ public class CategoriesController : ControllerBase
     /// <returns>Created category</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,CategoryManager")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryDto>), 201)]
+    [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 201)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
-    public async Task<ActionResult<ApiResponse<CategoryDto>>> CreateCategory(
+    public async Task<ActionResult<ApiResponse<CategoryVm>>> CreateCategory(
         [FromBody] CreateCategoryCommand command,
         CancellationToken cancellationToken = default)
     {
@@ -86,7 +86,7 @@ public class CategoriesController : ControllerBase
             return CreatedAtAction(
                 nameof(GetCategory), 
                 new { id = result.Value.Id }, 
-                ApiResponse<CategoryDto>.SuccessResponse(result.Value, "Category created successfully"));
+                ApiResponse<CategoryVm>.SuccessResponse(result.Value, "Category created successfully"));
         }
 
         return BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
@@ -101,10 +101,10 @@ public class CategoriesController : ControllerBase
     /// <returns>Updated category</returns>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin,CategoryManager")]
-    [ProducesResponseType(typeof(ApiResponse<CategoryDto>), 200)]
+    [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
-    public async Task<ActionResult<ApiResponse<CategoryDto>>> UpdateCategory(
+    public async Task<ActionResult<ApiResponse<CategoryVm>>> UpdateCategory(
         Guid id,
         [FromBody] UpdateCategoryCommand command,
         CancellationToken cancellationToken = default)
@@ -117,7 +117,7 @@ public class CategoriesController : ControllerBase
         var result = await _mediator.Send(command, cancellationToken);
 
         return result.IsSuccess 
-            ? Ok(ApiResponse<CategoryDto>.SuccessResponse(result.Value, "Category updated successfully"))
+            ? Ok(ApiResponse<CategoryVm>.SuccessResponse(result.Value, "Category updated successfully"))
             : result.Error.Type switch
             {
                 ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),

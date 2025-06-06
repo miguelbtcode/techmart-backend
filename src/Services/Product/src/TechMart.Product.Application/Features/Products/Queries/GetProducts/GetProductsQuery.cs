@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Product.Enums;
 using TechMart.SharedKernel.Common;
 
@@ -17,4 +17,4 @@ public record GetProductsQuery(
     decimal? MaxPrice = null,
     string? SortBy = null,
     bool SortDescending = false
-) : IRequest<Result<PaginatedResponseDto<ProductDto>>>;
+) : IRequest<Result<PaginatedResponseVm<ProductVm>>>;

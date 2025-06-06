@@ -1,6 +1,6 @@
 using AutoMapper;
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Category;
 using TechMart.Product.Domain.Product;
@@ -8,7 +8,7 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProduct;
 
-public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<ProductDto>>
+public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<ProductVm>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IBrandRepository _brandRepository;
@@ -27,15 +27,15 @@ public class GetProductQueryHandler : IRequestHandler<GetProductQuery, Result<Pr
         _mapper = mapper;
     }
 
-    public async Task<Result<ProductDto>> Handle(GetProductQuery request, CancellationToken cancellationToken)
+    public async Task<Result<ProductVm>> Handle(GetProductQuery request, CancellationToken cancellationToken)
     {
         var product = await _productRepository.GetByIdWithDetailsAsync(request.Id, cancellationToken);
         if (product == null)
         {
-            return Result.Failure<ProductDto>(Error.NotFound("Product.NotFound", $"Product with ID '{request.Id}' not found"));
+            return Result.Failure<ProductVm>(Error.NotFound("Product.NotFound", $"Product with ID '{request.Id}' not found"));
         }
 
-        var productDto = _mapper.Map<ProductDto>(product);
+        var productDto = _mapper.Map<ProductVm>(product);
 
         // Load brand and category names
         var brand = await _brandRepository.GetByIdAsync(product.BrandId, cancellationToken);

@@ -1,14 +1,14 @@
 using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.Product.Domain.Brand;
 using TechMart.Product.Domain.Product;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.GetProductsByBrand;
 
-public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrandQuery, Result<PaginatedResponseDto<ProductDto>>>
+public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrandQuery, Result<PaginatedResponseVm<ProductVm>>>
 {
     private readonly IProductRepository _productRepository;
     private readonly IBrandRepository _brandRepository;
@@ -27,7 +27,7 @@ public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrand
         _logger = logger;
     }
 
-    public async Task<Result<PaginatedResponseDto<ProductDto>>> Handle(GetProductsByBrandQuery request, CancellationToken cancellationToken)
+    public async Task<Result<PaginatedResponseVm<ProductVm>>> Handle(GetProductsByBrandQuery request, CancellationToken cancellationToken)
     {
         try
         {
@@ -35,7 +35,7 @@ public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrand
             var brand = await _brandRepository.GetByIdAsync(request.BrandId, cancellationToken);
             if (brand == null)
             {
-                return Result.Failure<PaginatedResponseDto<ProductDto>>(
+                return Result.Failure<PaginatedResponseVm<ProductVm>>(
                     Error.NotFound("Brand.NotFound", $"Brand with ID '{request.BrandId}' not found"));
             }
 
@@ -51,7 +51,7 @@ public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrand
                 cancellationToken);
 
             // Map to DTOs
-            var productDtos = _mapper.Map<List<ProductDto>>(pagedProducts.Items);
+            var productDtos = _mapper.Map<List<ProductVm>>(pagedProducts.Items);
 
             // Set brand name for all products
             foreach (var productDto in productDtos)
@@ -59,7 +59,7 @@ public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrand
                 productDto.BrandName = brand.Name;
             }
 
-            var response = new PaginatedResponseDto<ProductDto>
+            var response = new PaginatedResponseVm<ProductVm>
             {
                 Items = productDtos,
                 PageNumber = pagedProducts.PageNumber,
@@ -78,7 +78,7 @@ public class GetProductsByBrandQueryHandler : IRequestHandler<GetProductsByBrand
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting products for brand: {BrandId}", request.BrandId);
-            return Result.Failure<PaginatedResponseDto<ProductDto>>(
+            return Result.Failure<PaginatedResponseVm<ProductVm>>(
                 Error.Failure("Products.GetByBrandFailed", "Failed to retrieve products by brand"));
         }
     }

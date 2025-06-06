@@ -1,5 +1,5 @@
 using MediatR;
-using TechMart.Product.Application.Common.DTOs;
+using TechMart.Product.Application.Features.Products.Vms;
 using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Application.Features.Products.Queries.SearchProducts;
@@ -13,4 +13,4 @@ public record SearchProductsQuery(
     decimal? MinPrice = null,
     decimal? MaxPrice = null,
     bool IncludeInactive = false
-) : IRequest<Result<PaginatedResponseDto<ProductDto>>>;
+) : IRequest<Result<PaginatedResponseVm<ProductVm>>>;
