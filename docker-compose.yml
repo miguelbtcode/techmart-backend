@@ -1,0 +1,130 @@
+version: "3.8"
+name: techmart-microservices
+
+services:
+  # Base de datos SQL Server para Auth Service
+  db-auth:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: db-auth
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${SQLSERVER_SA_PASSWORD}
+      - MSSQL_PID=Developer
+    ports:
+      - "${SQLSERVER_PORT}:1433"
+    volumes:
+      - db_auth_data:/var/opt/mssql
+    networks:
+      - techmart-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P ${SQLSERVER_SA_PASSWORD} -Q 'SELECT 1' -C",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Base de datos PostgreSQL para Product Service
+  db-product:
+    image: postgres:16-alpine
+    container_name: db-product
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db_product_data:/var/lib/postgresql/data
+    networks:
+      - techmart-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Redis compartido para Product y futuros servicios (Basket/Cart)
+  db-redis:
+    image: redis:7-alpine
+    container_name: db-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    volumes:
+      - db_redis_data:/data
+    networks:
+      - techmart-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+
+  # Auth Microservice API
+  api-auth:
+    build:
+      context: ./
+      dockerfile: src/Services/Auth/docker/Dockerfile
+    container_name: api-auth
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8080
+      # ← Corregido: usa "db-auth" que es el nombre del servicio
+      ConnectionStrings__DefaultConnection: "Server=db-auth,1433;Database=${AUTH_DB_NAME};User Id=sa;Password=${SQLSERVER_SA_PASSWORD};TrustServerCertificate=true;"
+    ports:
+      - "${AUTH_API_PORT}:8080"
+    depends_on:
+      db-auth: # ← Corregido: era "auth-sqlserver"
+        condition: service_healthy
+    networks:
+      - techmart-network
+    restart: unless-stopped
+
+  # Product Microservice API
+  api-product:
+    build:
+      context: ./
+      dockerfile: src/Services/Product/docker/Dockerfile
+    container_name: api-product
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=db-product;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      ConnectionStrings__Redis: "db-redis:6379,password=${REDIS_PASSWORD}"
+    ports:
+      - "${PRODUCT_API_PORT}:8080"
+    depends_on:
+      db-product:
+        condition: service_healthy
+      db-redis:
+        condition: service_healthy
+    networks:
+      - techmart-network
+    restart: unless-stopped
+
+# Red compartida para todos los servicios
+networks:
+  techmart-network:
+    driver: bridge
+    name: techmart-network
+
+# Volúmenes persistentes
+volumes:
+  db_auth_data:
+    driver: local
+    name: db_auth_data
+  db_product_data:
+    driver: local
+    name: db_product_data
+  db_redis_data:
+    driver: local
+    name: db_redis_data
