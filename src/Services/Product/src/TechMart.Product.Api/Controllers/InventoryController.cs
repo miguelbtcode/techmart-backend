@@ -10,25 +10,11 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
 [EnableRateLimiting("ApiRateLimit")]
-public class InventoryController : ControllerBase
+public class InventoryController(IMediator mediator) : BaseApiController
 {
-    private readonly IMediator _mediator;
-
-    public InventoryController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
-    /// <summary>
-    /// Gets inventory information for a specific product
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Product inventory details</returns>
     [HttpGet("product/{productId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<InventoryVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
@@ -37,20 +23,11 @@ public class InventoryController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetInventoryByProductQuery(productId);
-        var result = await _mediator.Send(query, cancellationToken);
-
-        return result.IsSuccess 
-            ? Ok(ApiResponse<InventoryVm>.SuccessResponse(result.Value))
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        var result = await mediator.Send(query, cancellationToken);
+        
+        return HandleResult(result);
     }
-
-    /// <summary>
-    /// Updates stock levels for a product
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="command">Stock update command</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
+    
     [HttpPatch("product/{productId:guid}/stock")]
     [Authorize(Roles = "Admin,InventoryManager")]
     [EnableRateLimiting("AdminRateLimit")]
@@ -64,8 +41,8 @@ public class InventoryController : ControllerBase
     {
         if (productId != request.ProductId)
         {
-            return BadRequest(ApiResponse.FailureResponse("ID mismatch", 
-                new[] { "URL product ID does not match body product ID" }, 
+            return BadRequest(ApiResponse.FailureResponse("ID mismatch",
+                ["URL product ID does not match body product ID"], 
                 HttpContext.TraceIdentifier));
         }
 
@@ -75,25 +52,11 @@ public class InventoryController : ControllerBase
             request.Reason,
             User.Identity?.Name);
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? NoContent()
-            : result.Error.Type switch
-            {
-                ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-            };
+        return HandleUpdatedResult(result);
     }
-
-    /// <summary>
-    /// Reserves stock for a product (typically used during order processing)
-    /// </summary>
-    /// <param name="productId">Product ID</param>
-    /// <param name="request">Stock reservation request</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
+    
     [HttpPost("product/{productId:guid}/reserve")]
     [Authorize(Roles = "Admin,OrderManager,InventoryManager")]
     [EnableRateLimiting("AdminRateLimit")]
@@ -108,8 +71,8 @@ public class InventoryController : ControllerBase
     {
         if (productId != request.ProductId)
         {
-            return BadRequest(ApiResponse.FailureResponse("ID mismatch", 
-                new[] { "URL product ID does not match body product ID" }, 
+            return BadRequest(ApiResponse.FailureResponse("ID mismatch",
+                ["URL product ID does not match body product ID"], 
                 HttpContext.TraceIdentifier));
         }
 
@@ -119,17 +82,9 @@ public class InventoryController : ControllerBase
             request.ReservationId,
             User.Identity?.Name);
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? NoContent()
-            : result.Error.Type switch
-            {
-                ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                ErrorType.Conflict => Conflict(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-            };
+        return HandleUpdatedResult(result);
     }
 }
 

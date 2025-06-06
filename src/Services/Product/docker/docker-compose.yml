@@ -28,14 +28,14 @@ services:
 
   product-api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: ../../../../  # Contexto desde la raíz de la solución
+      dockerfile: src/Services/Product/docker/Dockerfile
     container_name: techmart-product-api
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=TechMartProductDb;Username=techmart_user;Password=techmart_password_2024"
-      ConnectionStrings__RedisConnection: "redis:6379,password=techmart_redis_password_2024"
+      ConnectionStrings__Redis: "redis:6379,password=techmart_redis_password_2024"
     ports:
       - "5025:8080"
     depends_on:

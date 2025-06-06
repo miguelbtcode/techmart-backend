@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
-using TechMart.Product.Domain.Exceptions;
+using TechMart.Product.Domain.Product.Errors;
 using TechMart.SharedKernel.Base;
+using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Domain.Product.ValueObjects;
 
@@ -8,19 +9,24 @@ public class ProductSku : BaseValueObject
 {
     private static readonly Regex SkuPattern = new(@"^[A-Z0-9]{3,20}$", RegexOptions.Compiled);
 
-    public string Value { get; }
+    public string Value { get; private set; }
 
-    public ProductSku(string value)
+    private ProductSku(string value)
+    {
+        Value = value;
+    }
+
+    public static Result<ProductSku> Create(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new InvalidSkuException("SKU cannot be empty");
+            return Result.Failure<ProductSku>(ProductErrors.EmptySku());
 
         var normalizedValue = value.Trim().ToUpperInvariant();
         
         if (!SkuPattern.IsMatch(normalizedValue))
-            throw new InvalidSkuException("SKU must be 3-20 characters long and contain only letters and numbers");
+            return Result.Failure<ProductSku>(ProductErrors.InvalidSku(value));
 
-        Value = normalizedValue;
+        return Result.Success(new ProductSku(normalizedValue));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
@@ -29,7 +35,5 @@ public class ProductSku : BaseValueObject
     }
 
     public static implicit operator string(ProductSku sku) => sku.Value;
-    public static implicit operator ProductSku(string value) => new(value);
-
     public override string ToString() => Value;
 }

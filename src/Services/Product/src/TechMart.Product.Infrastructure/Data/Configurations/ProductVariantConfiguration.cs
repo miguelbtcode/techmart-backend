@@ -53,15 +53,11 @@ public class ProductVariantConfiguration : IEntityTypeConfiguration<ProductVaria
             .HasConversion(
                 v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null!),
                 v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions)null!) ?? new Dictionary<string, string>())
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("jsonb");
 
         // Indexes
         builder.HasIndex(pv => pv.ProductId)
             .HasDatabaseName("IX_ProductVariants_ProductId");
-
-        builder.HasIndex(pv => new { pv.ProductId, pv.Sku })
-            .IsUnique()
-            .HasDatabaseName("IX_ProductVariants_ProductId_Sku");
 
         builder.HasIndex(pv => pv.IsActive)
             .HasDatabaseName("IX_ProductVariants_IsActive");

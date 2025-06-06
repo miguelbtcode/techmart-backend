@@ -65,10 +65,23 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand,
                 tags: request.Tags);
 
             // Update pricing
-            var price = new Price(request.Price, request.Currency);
-            var compareAtPrice = request.CompareAtPrice.HasValue 
-                ? new Price(request.CompareAtPrice.Value, request.Currency) 
-                : null;
+            var priceResult = Price.Create(request.Price, request.Currency);
+            if (priceResult.IsFailure)
+            {
+                return Result.Failure<ProductVm>(priceResult.Error);
+            }
+            var price = priceResult.Value;
+            
+            Price? compareAtPrice = null;
+            if (request.CompareAtPrice.HasValue)
+            {
+                var compareAtPriceResult = Price.Create(request.CompareAtPrice.Value, request.Currency);
+                if (compareAtPriceResult.IsFailure)
+                {
+                    return Result.Failure<ProductVm>(compareAtPriceResult.Error);
+                }
+                compareAtPrice = compareAtPriceResult.Value;
+            }
             
             product.UpdatePricing(price, compareAtPrice);
 

@@ -37,8 +37,16 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
     {
         try
         {
+            // Create Sku
+            var skuResult = ProductSku.Create(request.Sku);
+            if (skuResult.IsFailure)
+            {
+                return Result.Failure<ProductVm>(skuResult.Error);
+            }
+            var sku = skuResult.Value;
+            
             // Check if SKU already exists
-            var skuExists = await _productRepository.SkuExistsAsync(request.Sku, cancellationToken: cancellationToken);
+            var skuExists = await _productRepository.SkuExistsAsync(sku, cancellationToken: cancellationToken);
             if (skuExists)
             {
                 return Result.Failure<ProductVm>(Error.Conflict("Product.SkuExists", $"A product with SKU '{request.Sku}' already exists"));
@@ -59,10 +67,23 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
             }
 
             // Create price value object
-            var price = new Price(request.Price, request.Currency);
-            var compareAtPrice = request.CompareAtPrice.HasValue 
-                ? new Price(request.CompareAtPrice.Value, request.Currency) 
-                : null;
+            var priceResult = Price.Create(request.Price, request.Currency);
+            if (priceResult.IsFailure)
+            {
+                return Result.Failure<ProductVm>(priceResult.Error);
+            }
+            var price = priceResult.Value;
+            
+            Price? compareAtPrice = null;
+            if (request.CompareAtPrice.HasValue)
+            {
+                var compareAtPriceResult = Price.Create(request.CompareAtPrice.Value, request.Currency);
+                if (compareAtPriceResult.IsFailure)
+                {
+                    return Result.Failure<ProductVm>(compareAtPriceResult.Error);
+                }
+                compareAtPrice = compareAtPriceResult.Value;
+            }
 
             // Create weight value object if provided
             Weight? weight = null;
@@ -73,7 +94,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
             // Create product
             var product = new ProductEntity(
-                request.Sku,
+                sku,
                 request.Name,
                 request.Description,
                 price,

@@ -9,19 +9,21 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
 # Copy SharedKernel projects
-COPY ["../src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel/TechMart.SharedKernel.csproj", "src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel/"]
-COPY ["../src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel.Extensions/TechMart.SharedKernel.Extensions.csproj", "src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel.Extensions/"]
+COPY ["src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel/TechMart.SharedKernel.csproj", "src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel/"]
+COPY ["src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel.Extensions/TechMart.SharedKernel.Extensions.csproj", "src/Shared/TechMart.SharedKernel/src/TechMart.SharedKernel.Extensions/"]
 
-# Copy Product projects
-COPY ["../src/TechMart.Product.Domain/TechMart.Product.Domain.csproj", "src/TechMart.Product.Domain/"]
-COPY ["../src/TechMart.Product.Application/TechMart.Product.Application.csproj", "src/TechMart.Product.Application/"]
-COPY ["../src/TechMart.Product.Infrastructure/TechMart.Product.Infrastructure.csproj", "src/TechMart.Product.Infrastructure/"]
-COPY ["../src/TechMart.Product.Api/TechMart.Product.Api.csproj", "src/TechMart.Product.Api/"]
+# Copy Product service projects
+COPY ["src/Services/Product/src/TechMart.Product.Domain/TechMart.Product.Domain.csproj", "src/Services/Product/src/TechMart.Product.Domain/"]
+COPY ["src/Services/Product/src/TechMart.Product.Application/TechMart.Product.Application.csproj", "src/Services/Product/src/TechMart.Product.Application/"]
+COPY ["src/Services/Product/src/TechMart.Product.Infrastructure/TechMart.Product.Infrastructure.csproj", "src/Services/Product/src/TechMart.Product.Infrastructure/"]
+COPY ["src/Services/Product/src/TechMart.Product.Api/TechMart.Product.Api.csproj", "src/Services/Product/src/TechMart.Product.Api/"]
 
-RUN dotnet restore "src/TechMart.Product.Api/TechMart.Product.Api.csproj"
+# Restore dependencies
+RUN dotnet restore "src/Services/Product/src/TechMart.Product.Api/TechMart.Product.Api.csproj"
 
-COPY ../src/ ./src/
-WORKDIR "/src/src/TechMart.Product.Api"
+# Copy source code
+COPY src/ ./src/
+WORKDIR "/src/src/Services/Product/src/TechMart.Product.Api"
 RUN dotnet build "TechMart.Product.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish

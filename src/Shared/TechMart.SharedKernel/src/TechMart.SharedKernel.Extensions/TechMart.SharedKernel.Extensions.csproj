@@ -19,9 +19,12 @@
       <PackageReference Include="MongoDB.Driver" Version="3.4.0" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
       <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0-preview.3.efcore.9.0.0" />
+      <PackageReference Include="StackExchange.Redis" Version="2.8.37" />
       <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.1.4" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.1.4" />
       <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.1.4" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="5.1.0" />
     </ItemGroup>
 
     <ItemGroup>

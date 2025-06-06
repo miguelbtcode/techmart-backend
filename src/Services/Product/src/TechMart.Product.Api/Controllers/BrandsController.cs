@@ -7,24 +7,10 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class BrandsController : ControllerBase
+public class BrandsController(IMediator mediator) : BaseApiController
 {
-    private readonly IMediator _mediator;
-
-    public BrandsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
-    /// <summary>
-    /// Creates a new brand
-    /// </summary>
-    /// <param name="command">Brand creation data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Created brand</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,BrandManager")]
     [ProducesResponseType(typeof(ApiResponse<BrandVm>), 201)]
@@ -34,21 +20,25 @@ public class BrandsController : ControllerBase
         [FromBody] CreateBrandCommand command,
         CancellationToken cancellationToken = default)
     {
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
+        
+        // 🔥 SÚPER LIMPIO - Sin "this."
+        return HandleCreatedResult(result, nameof(GetBrand), new { id = result.Value?.Id });
+    }
+    
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<ApiResponse<BrandVm>>> GetBrand(Guid id)
+    {
+        // var result = await _mediator.Send(new GetBrandQuery(id));
+        // return HandleResult(result); // ← Limpio y natural
+        throw new NotImplementedException();
+    }
 
-        if (result.IsSuccess)
-        {
-            return CreatedAtAction(
-                "GetBrand", // This would need to be implemented
-                new { id = result.Value.Id }, 
-                ApiResponse<BrandVm>.SuccessResponse(result.Value, "Brand created successfully"));
-        }
-
-        return result.Error.Type switch
-        {
-            ErrorType.Conflict => Conflict(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-            ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-            _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-        };
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult<ApiResponse>> DeleteBrand(Guid id)
+    {
+        // var result = await _mediator.Send(new DeleteBrandCommand(id));
+        // return HandleDeletedResult(result); // ← Devuelve 204 No Content
+        throw new NotImplementedException();
     }
 }

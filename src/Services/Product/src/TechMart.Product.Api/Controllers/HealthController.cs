@@ -5,20 +5,11 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class HealthController : ControllerBase
+public class HealthController(ApplicationDbContext context, ILogger<HealthController> logger)
+    : BaseApiController
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ILogger<HealthController> _logger;
-
-    public HealthController(ApplicationDbContext context, ILogger<HealthController> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Basic health check endpoint
     /// </summary>
@@ -59,7 +50,7 @@ public class HealthController : ControllerBase
         try
         {
             // Test database connectivity
-            var canConnect = await _context.Database.CanConnectAsync(cancellationToken);
+            var canConnect = await context.Database.CanConnectAsync(cancellationToken);
             
             var detailedStatus = new
             {
@@ -67,7 +58,7 @@ public class HealthController : ControllerBase
                 Timestamp = DateTime.UtcNow,
                 Service = "TechMart Product API",
                 Version = "1.0.0",
-                Database = _context.Database.GetDbConnection().Database,
+                Database = context.Database.GetDbConnection().Database,
                 DatabaseConnected = canConnect
             };
 
@@ -77,7 +68,7 @@ public class HealthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Health check failed");
+            logger.LogError(ex, "Health check failed");
             
             return StatusCode(503, ApiResponse<object>.FailureResponse("Service Unavailable", new[] { "Health check failed" }));
         }
@@ -95,7 +86,7 @@ public class HealthController : ControllerBase
     {
         try
         {
-            var canConnect = await _context.Database.CanConnectAsync(cancellationToken);
+            var canConnect = await context.Database.CanConnectAsync(cancellationToken);
             return canConnect ? Ok() : StatusCode(503);
         }
         catch

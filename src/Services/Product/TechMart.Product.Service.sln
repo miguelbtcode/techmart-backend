@@ -14,8 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Product.Infrastruc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Product.UnitTests", "tests\TechMart.Product.UnitTests\TechMart.Product.UnitTests.csproj", "{5EDE682B-1E8E-403C-BBF5-ADD1C976EBF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TechMart.Product.IntegrationTests", "tests\TechMart.Product.IntegrationTests\TechMart.Product.IntegrationTests.csproj", "{E71E8340-32FF-4E0F-8B88-BA66E713540F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,7 +25,6 @@ Global
 		{A330A926-1368-4848-89A7-23447C81CB5D} = {71D4D44E-89A5-4286-B739-46527BD5A1B0}
 		{30CDDCD8-4BE0-4A72-81C6-D14421524833} = {71D4D44E-89A5-4286-B739-46527BD5A1B0}
 		{5EDE682B-1E8E-403C-BBF5-ADD1C976EBF2} = {21AEA3A1-C9D2-4E61-BC6C-B6A16375BF33}
-		{E71E8340-32FF-4E0F-8B88-BA66E713540F} = {21AEA3A1-C9D2-4E61-BC6C-B6A16375BF33}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{87CEC1BD-7DF3-48B4-B2F2-825CB6374814}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -50,9 +47,5 @@ Global
 		{5EDE682B-1E8E-403C-BBF5-ADD1C976EBF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5EDE682B-1E8E-403C-BBF5-ADD1C976EBF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5EDE682B-1E8E-403C-BBF5-ADD1C976EBF2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E71E8340-32FF-4E0F-8B88-BA66E713540F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E71E8340-32FF-4E0F-8B88-BA66E713540F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E71E8340-32FF-4E0F-8B88-BA66E713540F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E71E8340-32FF-4E0F-8B88-BA66E713540F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

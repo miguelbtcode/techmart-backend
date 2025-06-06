@@ -10,26 +10,10 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class CategoriesController : ControllerBase
+public class CategoriesController(IMediator mediator) : BaseApiController
 {
-    private readonly IMediator _mediator;
-
-    public CategoriesController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
-    /// <summary>
-    /// Gets all categories with optional filtering
-    /// </summary>
-    /// <param name="parentCategoryId">Filter by parent category ID</param>
-    /// <param name="includeInactive">Include inactive categories</param>
-    /// <param name="includeProductCount">Include product count</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of categories</returns>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<List<CategoryVm>>), 200)]
     public async Task<ActionResult<ApiResponse<List<CategoryVm>>>> GetCategories(
@@ -39,17 +23,11 @@ public class CategoriesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetCategoriesQuery(parentCategoryId, includeInactive, includeProductCount);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return Ok(ApiResponse<List<CategoryVm>>.SuccessResponse(result.Value));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Gets a category by ID
-    /// </summary>
-    /// <param name="id">Category ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Category details</returns>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
@@ -58,19 +36,11 @@ public class CategoriesController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetCategoryQuery(id);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<CategoryVm>.SuccessResponse(result.Value))
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Creates a new category
-    /// </summary>
-    /// <param name="command">Category creation data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Created category</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,CategoryManager")]
     [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 201)]
@@ -79,26 +49,11 @@ public class CategoriesController : ControllerBase
         [FromBody] CreateCategoryCommand command,
         CancellationToken cancellationToken = default)
     {
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return CreatedAtAction(
-                nameof(GetCategory), 
-                new { id = result.Value.Id }, 
-                ApiResponse<CategoryVm>.SuccessResponse(result.Value, "Category created successfully"));
-        }
-
-        return BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleCreatedResult(result, nameof(GetCategory), new { id = result.Value?.Id });
     }
 
-    /// <summary>
-    /// Updates an existing category
-    /// </summary>
-    /// <param name="id">Category ID</param>
-    /// <param name="command">Category update data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Updated category</returns>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin,CategoryManager")]
     [ProducesResponseType(typeof(ApiResponse<CategoryVm>), 200)]
@@ -111,18 +66,14 @@ public class CategoriesController : ControllerBase
     {
         if (id != command.Id)
         {
-            return BadRequest(ApiResponse.FailureResponse("ID mismatch", new[] { "URL ID does not match body ID" }, HttpContext.TraceIdentifier));
+            return BadRequest(ApiResponse.FailureResponse(
+                "ID mismatch",
+                ["URL ID does not match body ID"], 
+                HttpContext.TraceIdentifier));
         }
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<CategoryVm>.SuccessResponse(result.Value, "Category updated successfully"))
-            : result.Error.Type switch
-            {
-                ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-            };
+        return HandleResult(result, "Category updated successfully");
     }
 }

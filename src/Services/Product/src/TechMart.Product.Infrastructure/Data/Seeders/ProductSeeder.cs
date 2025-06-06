@@ -116,9 +116,14 @@ public static class ProductSeeder
         decimal price, string currency, 
         Guid brandId, Guid categoryId, ProductType type)
     {
-        var productPrice = new Price(price, currency);
+        var productPriceResult = Price.Create(price, currency);
+        var productPrice = productPriceResult.Value;
+
+        var productSkuResult = ProductSku.Create(sku);
+        var productSku = productSkuResult.Value;
+        
         var product = new ProductEntity(
-            new ProductSku(sku), name, description, 
+            productSku, name, description, 
             productPrice, brandId, categoryId, type);
         
         // Activate the product
@@ -131,10 +136,14 @@ public static class ProductSeeder
     {
         var baseUrl = "https://example.com/images/products";
         var productSlug = product.Name.ToLowerInvariant().Replace(" ", "-");
+
+        var imageUrlFirstResult = ImageUrl.Create($"{baseUrl}/{productSlug}/main.jpg");
+        var imageUrlSecondResult = ImageUrl.Create($"{baseUrl}/{productSlug}/side.jpg");
+        var imageUrlThirdResult = ImageUrl.Create($"{baseUrl}/{productSlug}/back.jpg");
         
-        product.AddImage(new ImageUrl($"{baseUrl}/{productSlug}/main.jpg"), $"{product.Name} main image", true);
-        product.AddImage(new ImageUrl($"{baseUrl}/{productSlug}/side.jpg"), $"{product.Name} side view", false);
-        product.AddImage(new ImageUrl($"{baseUrl}/{productSlug}/back.jpg"), $"{product.Name} back view", false);
+        product.AddImage(imageUrlFirstResult.Value, $"{product.Name} main image", true);
+        product.AddImage(imageUrlSecondResult.Value, $"{product.Name} side view", false);
+        product.AddImage(imageUrlThirdResult.Value, $"{product.Name} back view", false);
     }
 
     private static void AddProductAttributes(ProductEntity product)
@@ -183,9 +192,10 @@ public static class ProductSeeder
             var attributes256 = new Dictionary<string, string> { { "Storage", "256GB" }, { "Color", "Natural Titanium" } };
             var attributes512 = new Dictionary<string, string> { { "Storage", "512GB" }, { "Color", "Natural Titanium" } };
 
-            product.AddVariant(new ProductSku("IP15PRO128"), "iPhone 15 Pro 128GB", new Price(999.00m, "USD"), attributes128);
-            product.AddVariant(new ProductSku("IP15PRO256"), "iPhone 15 Pro 256GB", new Price(1099.00m, "USD"), attributes256);
-            product.AddVariant(new ProductSku("IP15PRO512"), "iPhone 15 Pro 512GB", new Price(1299.00m, "USD"), attributes512);
+            
+            product.AddVariant(ProductSku.Create("IP15PRO128").Value, "iPhone 15 Pro 128GB", Price.Create(999.00m, "USD").Value, attributes128);
+            product.AddVariant(ProductSku.Create("IP15PRO256").Value, "iPhone 15 Pro 256GB", Price.Create(1099.00m, "USD").Value, attributes256);
+            product.AddVariant(ProductSku.Create("IP15PRO512").Value, "iPhone 15 Pro 512GB", Price.Create(1299.00m, "USD").Value, attributes512);
         }
 
         if (product.Name == "Galaxy S24 Ultra")
@@ -194,9 +204,9 @@ public static class ProductSeeder
             var attributes512 = new Dictionary<string, string> { { "Storage", "512GB" }, { "Color", "Titanium Black" } };
             var attributes1TB = new Dictionary<string, string> { { "Storage", "1TB" }, { "Color", "Titanium Black" } };
 
-            product.AddVariant(new ProductSku("GS24U256"), "Galaxy S24 Ultra 256GB", new Price(1199.00m, "USD"), attributes256);
-            product.AddVariant(new ProductSku("GS24U512"), "Galaxy S24 Ultra 512GB", new Price(1399.00m, "USD"), attributes512);
-            product.AddVariant(new ProductSku("GS24U1TB"), "Galaxy S24 Ultra 1TB", new Price(1599.00m, "USD"), attributes1TB);
+            product.AddVariant(ProductSku.Create("GS24U256").Value, "Galaxy S24 Ultra 256GB", Price.Create(1199.00m, "USD").Value, attributes256);
+            product.AddVariant(ProductSku.Create("GS24U512").Value, "Galaxy S24 Ultra 512GB", Price.Create(1399.00m, "USD").Value, attributes512);
+            product.AddVariant(ProductSku.Create("GS24U1TB").Value, "Galaxy S24 Ultra 1TB", Price.Create(1599.00m, "USD").Value, attributes1TB);
         }
     }
 }

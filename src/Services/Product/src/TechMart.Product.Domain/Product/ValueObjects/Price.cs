@@ -1,23 +1,32 @@
-using TechMart.Product.Domain.Exceptions;
+using TechMart.Product.Domain.Product.Errors;
 using TechMart.SharedKernel.Base;
+using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Domain.Product.ValueObjects;
 
 public class Price : BaseValueObject
 {
-    public decimal Amount { get; }
-    public string Currency { get; }
+    public decimal Amount { get; private set; }
+    public string Currency { get; private set; }
 
-    public Price(decimal amount, string currency = "USD")
+    private Price(decimal amount, string currency)
+    {
+        Amount = amount;
+        Currency = currency;
+    }
+
+    public static Result<Price> Create(decimal amount, string currency = "USD")
     {
         if (amount < 0)
-            throw new InvalidPriceException("Price amount cannot be negative");
+            return Result.Failure<Price>(ProductErrors.InvalidPrice(amount));
+
+        if (amount == 0)
+            return Result.Failure<Price>(ProductErrors.ZeroPrice());
 
         if (string.IsNullOrWhiteSpace(currency))
-            throw new ArgumentException("Currency cannot be empty", nameof(currency));
+            return Result.Failure<Price>(Error.Validation("Price.InvalidCurrency", "Currency cannot be empty"));
 
-        Amount = Math.Round(amount, 2);
-        Currency = currency.ToUpperInvariant();
+        return Result.Success(new Price(Math.Round(amount, 2), currency.ToUpperInvariant()));
     }
 
     protected override IEnumerable<object?> GetEqualityComponents()
@@ -26,56 +35,13 @@ public class Price : BaseValueObject
         yield return Currency;
     }
 
-    public Price Add(Price other)
+    public Result<Price> Add(Price other)
     {
         if (Currency != other.Currency)
-            throw new InvalidOperationException("Cannot add prices with different currencies");
+            return Result.Failure<Price>(Error.Validation("Price.CurrencyMismatch", "Cannot add prices with different currencies"));
 
-        return new Price(Amount + other.Amount, Currency);
+        return Create(Amount + other.Amount, Currency);
     }
 
-    public Price Subtract(Price other)
-    {
-        if (Currency != other.Currency)
-            throw new InvalidOperationException("Cannot subtract prices with different currencies");
-
-        return new Price(Math.Max(0, Amount - other.Amount), Currency);
-    }
-
-    public Price Multiply(decimal factor)
-    {
-        if (factor < 0)
-            throw new ArgumentException("Factor cannot be negative", nameof(factor));
-
-        return new Price(Amount * factor, Currency);
-    }
-
-    public Price ApplyDiscount(decimal percentage)
-    {
-        if (percentage < 0 || percentage > 100)
-            throw new ArgumentException("Discount percentage must be between 0 and 100", nameof(percentage));
-
-        var discountAmount = Amount * (percentage / 100);
-        return new Price(Amount - discountAmount, Currency);
-    }
-
-    public bool IsGreaterThan(Price other)
-    {
-        if (Currency != other.Currency)
-            throw new InvalidOperationException("Cannot compare prices with different currencies");
-
-        return Amount > other.Amount;
-    }
-
-    public bool IsLessThan(Price other)
-    {
-        if (Currency != other.Currency)
-            throw new InvalidOperationException("Cannot compare prices with different currencies");
-
-        return Amount < other.Amount;
-    }
-
-    public override string ToString() => $"{Amount:C} {Currency}";
-
-    public string ToDisplayString() => $"{Amount:F2} {Currency}";
+    public override string ToString() => $"{Amount:F2} {Currency}";
 }

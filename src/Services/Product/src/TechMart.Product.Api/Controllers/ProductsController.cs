@@ -17,34 +17,10 @@ using TechMart.SharedKernel.Common;
 
 namespace TechMart.Product.Api.Controllers;
 
-[ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class ProductsController : ControllerBase
+public class ProductsController(IMediator mediator) : BaseApiController
 {
-    private readonly IMediator _mediator;
-
-    public ProductsController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
-    /// <summary>
-    /// Gets a paginated list of products with optional filtering
-    /// </summary>
-    /// <param name="pageNumber">Page number (1-based)</param>
-    /// <param name="pageSize">Number of items per page</param>
-    /// <param name="status">Filter by product status</param>
-    /// <param name="categoryId">Filter by category ID</param>
-    /// <param name="brandId">Filter by brand ID</param>
-    /// <param name="isFeatured">Filter featured products</param>
-    /// <param name="isOnSale">Filter products on sale</param>
-    /// <param name="minPrice">Minimum price filter</param>
-    /// <param name="maxPrice">Maximum price filter</param>
-    /// <param name="sortBy">Sort field</param>
-    /// <param name="sortDescending">Sort direction</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Paginated list of products</returns>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
@@ -66,19 +42,11 @@ public class ProductsController : ControllerBase
             pageNumber, pageSize, status, categoryId, brandId, 
             isFeatured, isOnSale, minPrice, maxPrice, sortBy, sortDescending);
 
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
-            : BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Gets a product by ID
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Product details</returns>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(ApiResponse<ProductVm>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
@@ -87,19 +55,11 @@ public class ProductsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var query = new GetProductQuery(id);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<ProductVm>.SuccessResponse(result.Value))
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Creates a new product
-    /// </summary>
-    /// <param name="command">Product creation data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Created product</returns>
     [HttpPost]
     [Authorize(Roles = "Admin,ProductManager")]
     [ProducesResponseType(typeof(ApiResponse<ProductVm>), 201)]
@@ -109,31 +69,11 @@ public class ProductsController : ControllerBase
         [FromBody] CreateProductCommand command,
         CancellationToken cancellationToken = default)
     {
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return CreatedAtAction(
-                nameof(GetProduct), 
-                new { id = result.Value.Id }, 
-                ApiResponse<ProductVm>.SuccessResponse(result.Value, "Product created successfully"));
-        }
-
-        return result.Error.Type switch
-        {
-            ErrorType.Conflict => Conflict(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-            ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-            _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-        };
+        return HandleCreatedResult(result, nameof(GetProduct), new { id = result.Value?.Id });
     }
 
-    /// <summary>
-    /// Updates an existing product
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="command">Product update data</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Updated product</returns>
     [HttpPut("{id:guid}")]
     [Authorize(Roles = "Admin,ProductManager")]
     [ProducesResponseType(typeof(ApiResponse<ProductVm>), 200)]
@@ -146,27 +86,17 @@ public class ProductsController : ControllerBase
     {
         if (id != command.Id)
         {
-            return BadRequest(ApiResponse.FailureResponse("ID mismatch", new[] { "URL ID does not match body ID" }, HttpContext.TraceIdentifier));
+            return BadRequest(ApiResponse.FailureResponse(
+                "ID mismatch", 
+                new[] { "URL ID does not match body ID" }, 
+                HttpContext.TraceIdentifier));
         }
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<ProductVm>.SuccessResponse(result.Value, "Product updated successfully"))
-            : result.Error.Type switch
-            {
-                ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                ErrorType.Validation => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-            };
+        return HandleResult(result, "Product updated successfully");
     }
 
-    /// <summary>
-    /// Deletes a product
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(ApiResponse), 204)]
@@ -176,20 +106,11 @@ public class ProductsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var command = new DeleteProductCommand(id);
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? NoContent()
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleDeletedResult(result);
     }
 
-    /// <summary>
-    /// Updates product status
-    /// </summary>
-    /// <param name="id">Product ID</param>
-    /// <param name="status">New status</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
     [HttpPatch("{id:guid}/status")]
     [Authorize(Roles = "Admin,ProductManager")]
     [ProducesResponseType(typeof(ApiResponse), 204)]
@@ -201,23 +122,11 @@ public class ProductsController : ControllerBase
         CancellationToken cancellationToken = default)
     {
         var command = new UpdateProductStatusCommand(id, status);
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? NoContent()
-            : result.Error.Type switch
-            {
-                ErrorType.NotFound => NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier)),
-                _ => BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier))
-            };
+        return HandleDeletedResult(result);
     }
 
-    /// <summary>
-    /// Bulk updates multiple products
-    /// </summary>
-    /// <param name="command">Bulk update command</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>No content</returns>
     [HttpPatch("bulk")]
     [Authorize(Roles = "Admin,ProductManager")]
     [ProducesResponseType(typeof(ApiResponse), 204)]
@@ -226,26 +135,11 @@ public class ProductsController : ControllerBase
         [FromBody] BulkUpdateProductsCommand command,
         CancellationToken cancellationToken = default)
     {
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result.IsSuccess 
-            ? NoContent()
-            : BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleDeletedResult(result);
     }
 
-    /// <summary>
-    /// Searches products by text
-    /// </summary>
-    /// <param name="searchTerm">Search term</param>
-    /// <param name="pageNumber">Page number</param>
-    /// <param name="pageSize">Page size</param>
-    /// <param name="categoryId">Filter by category</param>
-    /// <param name="brandId">Filter by brand</param>
-    /// <param name="minPrice">Minimum price</param>
-    /// <param name="maxPrice">Maximum price</param>
-    /// <param name="includeInactive">Include inactive products</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Search results</returns>
     [HttpGet("search")]
     [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 400)]
@@ -263,24 +157,11 @@ public class ProductsController : ControllerBase
         var query = new SearchProductsQuery(
             searchTerm, pageNumber, pageSize, categoryId, brandId, minPrice, maxPrice, includeInactive);
 
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
-            : BadRequest(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Gets products by category
-    /// </summary>
-    /// <param name="categoryId">Category ID</param>
-    /// <param name="pageNumber">Page number</param>
-    /// <param name="pageSize">Page size</param>
-    /// <param name="includeInactive">Include inactive products</param>
-    /// <param name="sortBy">Sort field</param>
-    /// <param name="sortDescending">Sort direction</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Products in category</returns>
     [HttpGet("category/{categoryId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
@@ -296,24 +177,11 @@ public class ProductsController : ControllerBase
         var query = new GetProductsByCategoryQuery(
             categoryId, pageNumber, pageSize, includeInactive, sortBy, sortDescending);
 
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 
-    /// <summary>
-    /// Gets products by brand
-    /// </summary>
-    /// <param name="brandId">Brand ID</param>
-    /// <param name="pageNumber">Page number</param>
-    /// <param name="pageSize">Page size</param>
-    /// <param name="includeInactive">Include inactive products</param>
-    /// <param name="sortBy">Sort field</param>
-    /// <param name="sortDescending">Sort direction</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Products by brand</returns>
     [HttpGet("brand/{brandId:guid}")]
     [ProducesResponseType(typeof(ApiResponse<PaginatedResponseVm<ProductVm>>), 200)]
     [ProducesResponseType(typeof(ApiResponse), 404)]
@@ -329,10 +197,8 @@ public class ProductsController : ControllerBase
         var query = new GetProductsByBrandQuery(
             brandId, pageNumber, pageSize, includeInactive, sortBy, sortDescending);
 
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
-        return result.IsSuccess 
-            ? Ok(ApiResponse<PaginatedResponseVm<ProductVm>>.SuccessResponse(result.Value))
-            : NotFound(ApiResponse.FailureResponse(result.Error, HttpContext.TraceIdentifier));
+        return HandleResult(result);
     }
 }
